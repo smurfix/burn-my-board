@@ -1,0 +1,9 @@
+Notes how to bootstrap a RockPi 4
+=================================
+
+Boot using SPL. We need: rkXX loader, gpt, idbloader, u-boot, boot, root.
+
+
+Doc:
+
+http://opensource.rock-chips.com/wiki_Boot_option
