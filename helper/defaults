@@ -1,0 +1,7 @@
+# Default values for a couple of scripts
+
+TEMPDIR=/var/tmp
+MKFS_ROOT="/sbin/mkfs.ext4"
+MKFS_BOOT="/sbin/mkfs.vfat"
+DIST=buster
+

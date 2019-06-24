@@ -2,19 +2,22 @@
 
 set -ex
 
+source helper/common
+
 usage() {
     cat <<'___'
-Usage: make_kernel kind destdir
+Usage: make_kernel dest
 
-Kind: rock
+Builds the kernel for this device.
+
+dest: directory to write the resulting .deb files to.
 
 ___
     exit 1
 }
-if test -z "$2" || ! test -d "$3" ; then usage; fi
+test -d "$1" || usage
 
-kind="$1"
-DEST="$2"
+DEST="$1"
 
 if test "$kind" = "rock" ; then
     DEFCONFIG=rock-pi-4-rk3399_defconfig
@@ -25,34 +28,33 @@ fi
 
 export ARCH CROSS_COMPILE
 
-mirror() {
-if ! test -d $1/.git ; then
-    if test -d ../$1 ; then
-        git clone -s ../$1 $1
-    else
-        git clone --depth=10 --branch $kind git@git.extern.smurf.noris.de:$1.git $1
-    fi
-fi
-}
-
-mirror kernel
-cd kernel
-git checkout $kind
+D=$(pwd)
+pushd $(mirror kernel)
+git checkout $TARGET
+cp $D/config/$TARGET .config
 make olddefconfig
+if ! fgrep -qsx "CONFIG_LOCALVERSION_AUTO=y" .config ; then
+    die "CONFIG_LOCALVERSION_AUTO must be set"
+fi
 if ! grep -qs mkdeb-pkg scripts/package/Makefile ; then
     cat >>scripts/package/Makefile << '___'
 mkdeb-pkg: FORCE 
 	$(CONFIG_SHELL) $(srctree)/scripts/package/mkdebian
 ___
 fi
-make mkdeb-pkg
+
 REL=$(make kernelrelease)
+if echo "$REL" | grep -qs 'dirty$' ; then
+    die "You need to check in your kernel changes before building."
+fi
+make mkdeb-pkg
 VERS=$(dpkg-parsechangelog | sed -ne s/^Version: //p)
-cd ..
+popd
+
 if test -s $DEST/linux.version && test "$(cat $DEST/linux.version)" = "$VERS"  ; then
     echo Kernel already current.
 else
-    cd kernel
+    pushd $(mirror kernel)
     # we could analyze "present" instead, but that's way more work
     make -j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l) bindeb-pkg
     cd ..
@@ -60,5 +62,6 @@ else
     mv linux-libc-dev-${REL}_${VERS]_arm64.deb $DEST/linux-libc-dev.deb
     mv linux-headers-${REL}_${VERS]_arm64.deb $DEST/linux-headers.deb
     echo $VERS > $DEST/linux.version
+    popd
 fi
 

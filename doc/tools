@@ -1,0 +1,85 @@
+Tools
+=====
+
+All tools require either a ``TARGET`` envvar, or ":TARGET" as the first
+argument.
+
+
+make_kernel
+++++++++++
+
+Creates a kernel package. It checks out the $TARGET branch of the
+"kernel" repository uses config/$TARGET as the config file.
+
+Arguments:
+
+* the destination directory
+
+If a "linux.version" file exists (in the dest dir) and contains the current
+kernel version, the kernel stored there is assumed to be up-to-date.
+
+CONFIG_LOCALVERSION_AUTO should be set so that the current git version
+includes the git commit ID. The script refuses to build from a dirty
+repository.
+
+
+make_loader
+++++++++++
+
+Compiles / downloads the boot loaders required for "send_image" and
+"make_image".
+
+Arguments:
+
+* dest: directory where to store the files.
+
+
+make_root
+++++++++++
+
+Populates a root/boot image.
+
+Arguments:
+
+* root: file name, directory or device.
+
+* boot: file name, directory or device. Optional.
+
+* command args…
+
+For root and boot, a directory is used directly. Devices are mounted. File
+names need to refer to an image file containing a (possibly-empty) file
+system. "make_root" does not create or format partitions.
+
+The boot directory is mounted over the target root while building.
+
+The given command, if any, will be executed in the target file system after
+building. You can use this e.g. to install a kernel package.
+
+/tmp is available in the root and in the target.
+
+Use "-" in place of the boot file if you need to specify a command but
+don't want a separate /boot.
+
+
+make_image
+++++++++++
+
+Generates an image for burning to SD-Card, including boot and root
+partitions.
+
+Arguments:
+
+* file name or device.
+
+  If a file name, the file is created (if it doesn't exist), partitioned
+  and mounted. A device is simply partitioned.
+
+
+send_image
+++++++++++
+
+Sends boot data to a new device.
+
+This is the preferred method for Rock Pi 4 (boot loader on eMMC).
+

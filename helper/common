@@ -1,0 +1,73 @@
+# common functions, TARGET isolation
+
+die() {
+	echo "$*"
+	exit 1
+}
+
+[ $(id -u) -ne 0 ] || die "Don't run me as root."
+
+case "$1" in
+	(:*)
+		export TARGET="$1"
+		;;
+	(*)
+		if [ -z "$TARGET" ] ; then
+			[ -n "$1" ] || die "Either export TARGET or pass it as ':TARGET' in the first argument."
+			export TARGET="$1"
+			shift
+		fi
+		;;
+esac
+
+cleanup() {
+# does nothing, can be overridden
+}
+
+_BMB_LOOP="" # list of loopback devices I created
+_BMB_MOUNT="" # list of things I mounted
+
+loopback() {
+	local L=$(losetup -f)
+	sudo losetup $L "$@"
+	_BMB_LOOP="$LOOP $L"
+	echo L
+}
+mount() {
+	local D="$1"
+	local S="$1"
+	shift; shift
+	local OPTS="$*"
+
+	if test -d "$S" ; then
+	OPTS="--bind $OPTS"
+	sudo mount "$OPTS" $D $S
+	_BMB_MOUNT="$D $_BMB_MOUNT"
+}
+
+_cleanup() {
+	cleanup()
+
+	local L M
+	for L in $_BMB_LOOP ; do sudo losetup -d $L ; done
+	for M in $_BMB_MOUNT ; do sudo umount $M; done
+	
+	test -z "$_BMB_THIS_TEMP" || rm -rf $T
+}
+
+if [ -z "$_BMB_TEMP" ] ; then
+	T=$(tempfile -d "$TEMPDIR")
+	rm -f "$T"
+	mkdir "$T"
+	export _BMB_TEMP="$T"
+	_BMB_THIS_TEMP="$T"
+
+else
+	T="$_BMB_TEMP"
+fi
+trap "_cleanup" EXIT
+
+source helper/defaults
+source param/$TARGET
+
+source helper/mirror

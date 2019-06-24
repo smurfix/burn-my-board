@@ -1,0 +1,42 @@
+======================
+Notes how to bootstrap
+======================
+
+Details
++++++++
+
+This will work for:
+
+* odroid U2
+
+  I have some of those lying around. eMMC storage.
+
+Console
++++++++
+
+Header is Vcc-TxD-RxD-GND.
+
+We need a boot loader and u-boot.
+
+
+Documentation
++++++++++++++
+
+UART pins, building w/ the current kernel, et al.:
+https://www.nico-maas.de/?p=1491
+
+Boot sequence:
+https://angband.pl/doc/u2.txt
+https://odroid.com/dokuwiki/doku.php?id=en:exynos4412bootsequence
+https://github.com/dsd/u-boot/blob/master/doc/README.odroid
+(requires signed BL2?)
+
+Some info:
+http://rtisat.blogspot.com/search/label/odroid-u3
+
+Hopefully working u-boot:
+https://github.com/tobiasjakobi/u-boot
+
+Boot loader:
+https://forum.odroid.com/viewtopic.php?f=52&t=3662
+

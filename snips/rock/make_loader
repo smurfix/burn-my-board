@@ -1,0 +1,32 @@
+
+RKBIN=$(mirror rkbin)
+U_BOOT=$(mirror u-boot)
+TOOLPATH=$RKBIN/tools
+    
+mkdir -p $T/loader
+
+$TOOLPATH/loaderimage --pack --uboot u-boot/u-boot-dtb.bin $T/loader/uboot.img 0x200000 --size 1024 1
+
+$U_BOOT/tools/mkimage -n rk3399 -T rksd -d $RKBIN/bin/rk33/rk3399_ddr_800MHz_v1.20.bin $T/loader/idbloader.img
+cat $RKBIN/bin/rk33/rk3399_miniloader_v1.19.bin >> $T/loader/idbloader.img
+cp $RKBIN/bin/rk33/rk3399_loader_v1.12.112.bin $T/loader/boot1.img  # for upload via rkdeveloptool
+
+cat >$T/loader/trust.ini <<EOF
+[VERSION]
+MAJOR=1
+MINOR=0
+[BL30_OPTION]
+SEC=0
+[BL31_OPTION]
+SEC=1
+PATH=$RKBIN/bin/rk33/rk3399_bl31_v1.26.elf
+ADDR=0x10000
+[BL32_OPTION]
+SEC=0
+[BL33_OPTION]
+SEC=0
+[OUTPUT]
+PATH=$T/loader/trust.img
+EOF
+
+$TOOLPATH/trust_merger --size 1024 1 $T/loader/trust.ini

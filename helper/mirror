@@ -1,0 +1,10 @@
+mirror() {
+if ! test -d mirror/$1/.git ; then
+    if test -d ../$1 ; then
+        git clone -s ../$1 $1
+    else
+        git clone --depth=10 --branch $kind git@git.extern.smurf.noris.de:$1.git $1
+    fi
+fi
+echo mirror/$1
+}

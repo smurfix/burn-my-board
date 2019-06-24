@@ -1,0 +1,48 @@
+#!/bin/bash
+
+set -ex
+
+source helper/common
+
+usage() {
+    cat <<'___'
+Usage: make_image [:target] dest [root [boot]]
+
+Create an image.
+
+dest: Destination device (or image). Will be overwritten!
+root: Root file system (directory or image).
+boot: /boot partition file system (directory or image).
+
+If root/boot are not given they are (ephemerally) created in /var/tmp.
+___
+    exit 1
+}
+
+test -n "$1" || usage
+
+source snips/$TARGET/partinfo
+
+R=$T/root
+mkdir -p $R
+if test -z "$1" || test "$1" = "--" ; then
+    echo "You need to supply a place to store the image."
+    exit 1
+elif test -b "$1" ; then
+    IMG="$1"
+    sfdisk "$1" < $T/partinfo
+else
+    if ! test -s "$1" ; then
+        dd bs=512 if=/dev/zero of="$1" count=$DEVICE_SIZE
+        sfdisk "$1" < $T/partinfo
+    fi
+    LOOP=$(losetup -f)
+    losetup $LOOP "$1"
+    IMG=${LOOP}
+fi
+sudo /bin/umount $R
+
+bin/make_loader
+
+source snips/$TARGET/write_loader
+

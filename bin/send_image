@@ -84,7 +84,7 @@ else
     exit 1
 fi
 
-scripts/make_loader $kind $T/bootimg
+bin/make_loader $kind $T/bootimg
 
 if [ "$kind" = "rock"] ; then
     if rkdeveloptool ld | grep -qs "not found" ; then

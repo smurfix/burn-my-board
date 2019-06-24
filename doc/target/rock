@@ -1,52 +1,14 @@
-======================
-Notes how to bootstrap
-======================
+Rock Pi 4b, eMMC card
+=====================
 
-Details
-+++++++
+This uses the "send_image" target to burn things onto an eMMC card via USB.
 
-This will work for:
+You need a USB male-to-male cable. If nothing else, take two identical
+USB-to-microUSB cables, cut them up, and connect all the same-colored
+wires.
 
-* rock
-
-  Rock Pi 4b, eMMC cards.
-
-* odroid
-
-  These Odroid U2 things I have lying around. eMMC cards.
-
-* pi
-
-  Raspberry Pi boot. SD cards.
-
-Common
-======
-
-root
-----
-
-Run "scripts/make_root".
-
-Arguments:
-
-* kind
-
-* root directory (or partition, or path-to-image).
-
-* boot directory (or partition, or path-to-image).
-
-* any number of .deb files to install.
-
-
-The file "/root.partid", on the root partition, needs to contain the partition ID of the rootfs.
-
-
-boot
-----
-
-Build the "smurf/boot/$kind" kernel using the config in, surprise, ".config".
-Install into root+boot image.
-
+You also need "rkdeveloptool". Don't forget the udev rules because these
+scripts don't call "sudo" for USB devices.
 
 RockPi
 ======
@@ -159,30 +121,6 @@ don't want a separate /boot.
 
 Documentation
 +++++++++++++
-
-Odroid
-------
-
-UART pins, building w/ the current kernel, et al.:
-https://www.nico-maas.de/?p=1491
-
-Boot sequence:
-https://angband.pl/doc/u2.txt
-https://odroid.com/dokuwiki/doku.php?id=en:exynos4412bootsequence
-https://github.com/dsd/u-boot/blob/master/doc/README.odroid
-(requires signed BL2?)
-
-Some info:
-http://rtisat.blogspot.com/search/label/odroid-u3
-
-Hopefully working u-boot:
-https://github.com/tobiasjakobi/u-boot
-
-Boot loader:
-https://forum.odroid.com/viewtopic.php?f=52&t=3662
-
-Rockchip/Raxda
---------------
 
 Boot loader:
 http://opensource.rock-chips.com/wiki_Boot_option

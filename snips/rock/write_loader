@@ -1,0 +1,6 @@
+# see do/snips/write_loader
+
+dd if=$T/loader/idbloader.img of=${IMG}p1 conv=notrunc
+dd if=$T/loader/uboot.img of=${IMG}p2 conv=notrunc
+dd if=$T/loader/trust.img of=${IMG}p3 conv=notrunc
+

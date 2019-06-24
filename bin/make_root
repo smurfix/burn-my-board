@@ -101,7 +101,11 @@ if test -x $R/debootstrap/debootstrap ; then
 	chroot $R /debootstrap/debootstrap --second-stage
 	test ! -f $R/debootstrap/debootstrap
 fi
-C="systemd-nspawn -D $R --bind=/tmp"
+
+mkdir -p $T/kernel
+bin/make_kernel $T/kernel
+
+C="systemd-nspawn -D $R --bind=$T"
 
 # You don't know this password, and even if you cracked it you can't use it
 # to log onto my systems anyway. So there.
@@ -170,6 +174,9 @@ fi
 if test -n "$P" ; then
 	$C apt-get update
 	$C apt-get install --no-install-recommends -y $P
+fi
+if test ! -s $R/config-$(cat $T/kernel/linux.version) ; then
+	dpkg -i $T/kernel/kernel.deb
 fi
 
 if test -n "$*" ; then

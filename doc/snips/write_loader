@@ -1,0 +1,4 @@
+This snip writes (some of?) the partitions that bin/make_loader created to
+the appropriate partitions of the device $IMG.
+
+Linux boot and root partitions are NOT written here.

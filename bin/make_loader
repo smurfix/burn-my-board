@@ -1,0 +1,27 @@
+#!/bin/bash
+
+set -ex
+
+source helper/common
+
+usage() {
+    cat <<'___'
+Usage: make_loader destdir
+
+Creates the boot loader(s) for the device, including U-Boot if required.
+
+___
+    exit 1
+}
+test -d "$1" || usage
+
+DEST="$1"
+
+U="$(mirror u-boot)"
+pushd "$U"
+git checkout $TARGET
+make ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE all
+popd
+
+source snips/rock/make_loader
+

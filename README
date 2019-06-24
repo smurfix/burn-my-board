@@ -16,28 +16,70 @@ I only use embedded things that are supported by the mainline kernel
 because all too often I want to experiment with new features.
 (The Raspberry Pi is the only exception, but it follows mainline, so …)
 
+
 How to use this repository
 ==========================
 
-First, run ``sudo id``. Twice. If that doesn't work or if it asks for a
-password the second time, fix it. This code needs to call '`sudo`` awfully
-often.
+Get a serial console cable. Seriously. I recommend the
+`https://www.crowdsupply.com/pylo/muart µArt` because it has galvanic
+separation between the host and the target, so you're much less likely to
+fry either. This adapter does need power from the target: ignore any
+recommendations to leave the red wire open. (Besides, on my µArt the ``Vcc``
+wire is white. :-P )
+
+Run ``sudo id``. Twice. If that doesn't work or if it asks for a password
+the second time, fix it. This code needs to call '`sudo`` awfully often.
+
+Run ``ls config``. If your board isn't listed, you need to add it. See
+below.
+
+Read ``doc/``_TARGET_ for further eludication and instruction.
+
+Set ``export TARGET=``_TARGET_ to tell the commands in ``bin/`` which board
+to build for. Alternately, the scripts accept ``:TARGET`` as the first
+argument.
+
+Don't run any scripts as root or with ``sudo``. They're not built to
+safely do this. If you need to access a device, use ``sudo chown $USER
+/dev/XXX``.
+
+Make sure that there's enough space in ``/var/tmp`` for two copies of your
+image.
 
 Create an image
 +++++++++++++++
 
-Run ``ls param``. If your board isn't listed, you need to add it. See
-below.
+Read ``doc/TARGET`` for any requirements.
 
-Run ``bin/make_image TARGET``.
+Call ``bin/make_image :TARGET /var/tmp/TARGET.img``. Then copy the image to
+an SD card (``sudo dd bs=1024k if=/var/tmp/TARGET.img of=/dev/sdX``).
+
+You can also insert an SD card and run ``bin/make_image TARGET /dev/sdX``.
+This is somewhat slower if you need to burn multiple images.
+
 
 Add a new board
 +++++++++++++++
 
-* Add a ``snips/TARGET`` subdirectory. No, don't call it "TARGET", use
-  your own board.
+* Change ``AUTHOR`` to point to yourself and your public git repository
+  (github, gitlab, your own …).
+
+* Add a ``doc/TARGET`` file that contains anything one needs to know to
+  bring up your board. Start with how to connect the console (which pins?
+  baud rate? If the adapter needs Vcc and th console is on a three-pin
+  header, where can it get that?), add any special instructions if simply
+  writing the image to an SD card and plugging that in doesn't work,
+  followed by any insights you gained when you did this which you'd like
+  your future self to know. Don't forget links to the documentation you used.
+
+* Clone all external requirements to your own repository. Use the "mirror"
+  function to fetch them.
+
+* Add a ``snips/TARGET`` subdirectory. No, don't call it "TARGET". Use
+  the name of your own board.
 
 * Copy the most similar candidate in param/ to param/TARGET.
+  Remove anything that doesn't apply for your board.
 
 * Create a kernel repository in ../kernel, configure your kernel.
   Then do ``git checkout -b TARGET``, ``git add -f .config``, and ``git
@@ -47,6 +89,68 @@ Add a new board
   note a bunch of failures, including some code you'll have to add to
   ``snips/TARGET/``. Fix them. ;-)
 
-* Either copy your image to an SD card (``dd bs=1024k if=/var/tmp/test.img
-  of=/dev/sdX``) or call ``bin/send_image``. The latter might need a
-  device file.
+* That worked? Good. Proceed with "Create an image", above.
+
+* Add a file to doc/authors/TARGET. The "source" tag should point to your
+  repository. All tags can be repeated. Add ``#BRANCH`` at the end if not
+  ``master``.
+
+* Create a pull request so that I can integrate your extension.
+
+Shell helpers
++++++++++++++
+
+This section briefly documents the helper variables and functions you can use in your script
+snippets.
+
+* T
+  The base path of a temporary directory. Mount your file systems in
+  subdirectories of this directory. They'll be unmounted automatically.
+
+* TARGET
+  The name of the device you're using. set from the first argument to your
+  script (when that starts with a colon), or iniherited from the environment.
+
+* cleanup
+
+  Override this function to do your own cleanup.
+
+* loopback
+
+  Get a loopback device. Accepts the same arguments as ``losetup``, most
+  notably including ``-P``. Will get recoded so auto de-looping works.
+
+* mount
+
+  Alias for "mount". Usage: destdir source any_mount_options.
+  Will get recorded so that auto unmounting works.
+  If the source is a directory, does a bind mount.
+
+Subdirectories
+++++++++++++++
+
+* bin
+  User-executable scripts
+
+* config
+  Kernel configuration for each target.
+
+* helper
+  Common parts of shell scripts, *not* separated by target
+
+* mirror
+  Storage for local git clones of supporting archives.
+
+* param
+  Files with shell variables for each target. Generally not configurable.
+  
+* snips
+  Per-target code for various device-specific features. Not directly
+  callable.
+
+* doc/snips/*
+  Documents what the helper scripts in ``snips/target/*`` do.
+
+* doc/bin/*
+  Documents what the scripts in ``bin/`` do.
+

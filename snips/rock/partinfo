@@ -1,0 +1,23 @@
+# See doc/snips/partinfo for the purpose of this.
+
+PART_OFFSET=0  # 1 for SD ?
+. param/$TARGET
+
+P_ROOT=p5
+P_BOOT=P4
+
+cat >$T/partinfo <<_
+label: gpt
+#label-id: B01F15CB-EA3B-408F-8384-D4B99DD16859
+#device: /var/tmp/whatever
+unit: sectors
+first-lba: ${LOADER1_START}
+last-lba: $(expr ${DEVICE_SIZE} - 1)
+
+/var/tmp/bla1 : start=${LOADER1_START}, size=${LOADER1_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name="loader1"
+/var/tmp/bla2 : start=${LOADER2_START}, size=${LOADER2_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name="loader2"
+/var/tmp/bla3 : start=${ATF_START}, size=${ATF_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name="trust"
+/var/tmp/bla4 : start=${BOOT_START}, size=${BOOT_SIZE}, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, name="boot"
+/var/tmp/bla5 : start=${ROOT_START}, size=${ROOT_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name="rootfs"
+
+_

@@ -1,0 +1,5 @@
+The purpose of this snip is to write a "partinfo" file that can           
+serve as input to "sfdisk".
+
+The script (re-)reads param/$TARGET and leaves the data in $T/partinfo.
+
