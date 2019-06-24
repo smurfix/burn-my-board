@@ -1,9 +1,198 @@
-Notes how to bootstrap a RockPi 4
-=================================
+======================
+Notes how to bootstrap
+======================
 
-Boot using SPL. We need: rkXX loader, gpt, idbloader, u-boot, boot, root.
+Details
++++++++
+
+This will work for:
+
+* rock
+
+  Rock Pi 4b, eMMC cards.
+
+* odroid
+
+  These Odroid U2 things I have lying around. eMMC cards.
+
+* pi
+
+  Raspberry Pi boot. SD cards.
+
+Common
+======
+
+root
+----
+
+Run "scripts/make_root".
+
+Arguments:
+
+* kind
+
+* root directory (or partition, or path-to-image).
+
+* boot directory (or partition, or path-to-image).
+
+* any number of .deb files to install.
 
 
-Doc:
+The file "/root.partid", on the root partition, needs to contain the partition ID of the rootfs.
 
+
+boot
+----
+
+Build the "smurf/boot/$kind" kernel using the config in, surprise, ".config".
+Install into root+boot image.
+
+
+RockPi
+======
+
+Console: 1500000 baud. 1:Vcc 6:GND 8:TxD 10:RxD.
+
+Boot: We need: rkXX loader, gpt, idbloader, u-boot, boot, root.
+
+Kernel: earlycon=uart8250,mmio32,0xff1a0000 swiotlb=1 coherent_pool=1m earlyprintk console=ttyS2,1500000n8 rw root=PARTUUID=deadbeef-01 rootfstype=ext4 init=/sbin/init rootwait
+
+rkXX loader
+-----------
+
+To be sent to 
+
+gpt
+---
+
+See rockchip-bsp/build/partition.sh
+
+Core boot
+---------
+
+See rockchip-bsp/build/mk-image.sh
+
+u-boot
+------
+
+Should work. To be tested.
+
+boot
+----
+
+Build a root image with boot/ mounted separately. See next section.
+
+
+Odroid-U2
+=========
+
+Console: 115200 baud. Header is Vcc-TxD-RxD-GND.
+
+Build boot loader and u-boot.
+
+
+Tools
++++++
+
+All tools require the kind of device as first parameter. This argument is
+not mentioned in the commands' description.
+
+make_image
+----------
+
+Generates an image for burning to SD-Card, including boot and root
+partitions.
+
+Arguments:
+
+* file name or device.
+
+  If a file name, the file is created (if it doesn't exist), partitioned
+  and mounted. A device is simply partitioned.
+
+send_image
+----------
+
+Sends boot data to a new device.
+
+This is the preferred method for Rock Pi 4 (boot loader on eMMC).
+
+Arguments: None.
+
+make_loader
+-----------
+
+Compiles / downloads the boot loaders required for "send_image" and
+"make_image".
+
+Arguments:
+
+* destination: directory where to store the files.
+
+make_root
+---------
+
+Populates a root/boot image.
+
+Arguments:
+
+* root: file name, directory or device.
+
+* boot: file name, directory or device. Optional.
+
+* command args…
+
+For root and boot, a directory is used directly. Devices are mounted. File
+names need to refer to an image file containing a (possibly-empty) file
+system. "make_root" does not create or format partitions.
+
+The boot directory is mounted over the target root while building.
+
+The given command, if any, will be executed in the target file system after
+building. You can use this e.g. to install a kernel package.
+
+/tmp is available in the root and in the target.
+
+Use "-" in place of the boot file if you need to specify a command but
+don't want a separate /boot.
+
+
+Documentation
++++++++++++++
+
+Odroid
+------
+
+UART pins, building w/ the current kernel, et al.:
+https://www.nico-maas.de/?p=1491
+
+Boot sequence:
+https://angband.pl/doc/u2.txt
+https://odroid.com/dokuwiki/doku.php?id=en:exynos4412bootsequence
+https://github.com/dsd/u-boot/blob/master/doc/README.odroid
+(requires signed BL2?)
+
+Some info:
+http://rtisat.blogspot.com/search/label/odroid-u3
+
+Hopefully working u-boot:
+https://github.com/tobiasjakobi/u-boot
+
+Boot loader:
+https://forum.odroid.com/viewtopic.php?f=52&t=3662
+
+Rockchip/Raxda
+--------------
+
+Boot loader:
 http://opensource.rock-chips.com/wiki_Boot_option
+https://github.com/radxa/rockchip-bsp.git
+
+Partitioning:
+http://opensource.rock-chips.com/wiki_Partitions
+
+Archives:
+https://wiki.radxa.com/Rockpi4/radxa-apt
+deb http://apt.radxa.com/$DISTRO/ stretch main
+DISTRO=stretch, stretch-testing
+

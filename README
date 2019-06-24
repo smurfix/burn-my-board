@@ -1,0 +1,52 @@
+Purpose of this repository
+==========================
+
+I own a bunch of embedded boards (raspi, rockpi, odroid, …) and frequently
+forget the details on how to create a new image for them.
+
+Yes I could download one from the manufacturer, but the upstream images
+frequently come with packages I don't need, miss packages I need, require
+handholding before they fit my home network, and whatnot.
+
+Worse, they frequently are unable to do kernel upgrades (defined as "``make
+binpkg-deb`` in the kernel, copy to embedded, ``dpkg install``") out of the
+box.
+
+I only use embedded things that are supported by the mainline kernel
+because all too often I want to experiment with new features.
+(The Raspberry Pi is the only exception, but it follows mainline, so …)
+
+How to use this repository
+==========================
+
+First, run ``sudo id``. Twice. If that doesn't work or if it asks for a
+password the second time, fix it. This code needs to call '`sudo`` awfully
+often.
+
+Create an image
++++++++++++++++
+
+Run ``ls param``. If your board isn't listed, you need to add it. See
+below.
+
+Run ``bin/make_image TARGET``.
+
+Add a new board
++++++++++++++++
+
+* Add a ``snips/TARGET`` subdirectory. No, don't call it "TARGET", use
+  your own board.
+
+* Copy the most similar candidate in param/ to param/TARGET.
+
+* Create a kernel repository in ../kernel, configure your kernel.
+  Then do ``git checkout -b TARGET``, ``git add -f .config``, and ``git
+  commit -m 'my branch for TARGET'``.
+
+* Start by running ``bin/make_image TARGET /var/tmp/test.img``. You'll probably
+  note a bunch of failures, including some code you'll have to add to
+  ``snips/TARGET/``. Fix them. ;-)
+
+* Either copy your image to an SD card (``dd bs=1024k if=/var/tmp/test.img
+  of=/dev/sdX``) or call ``bin/send_image``. The latter might need a
+  device file.

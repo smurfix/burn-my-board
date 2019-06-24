@@ -1,0 +1,109 @@
+#!/bin/bash
+
+set -ex
+
+usage() {
+    cat <<'___'
+Usage: send_image kind [rootpart [bootpart]]
+
+Kind: rock
+
+___
+    exit 1
+}
+
+T=$(tempfile)
+rm -f $T
+mkdir $T
+
+test -n "$1" || usage
+kind="$1"; shift
+if [ "$kind" = "rock" ] ; then
+    ARCH=aarch64
+    DEB_ARCH=arm64
+else
+    usage
+    ARCH=arm
+    DEB_ARCH=armhf
+fi
+DIST=buster
+
+ROOT_IMG=
+if test -z "$1" ; then
+    :
+elif test "$1" = "-" ; then
+    shift
+else
+    ROOT_IMG="$1"
+    shift
+fi
+
+BOOT_IMG=
+if test -z "$1" ; then
+    :
+elif test "$1" = "-" ; then
+    shift
+else
+    BOOT_IMG="$1"
+    shift
+fi
+
+cleanup() {
+    mountpoint -q $T/root/boot && umount -f $T/root/boot
+    mountpoint -q $T/root && umount -f $T/root
+
+    test -z "$LOOP" || losetup -d $LOOP
+    rm -rf $T
+}
+trap "cleanup" EXIT
+
+if test "$kind" = "rock" ; then
+    source param/$kind
+
+    cat >$T/gptinfo <<_
+FIRMWARE_VER: 6.0.0
+MACHINE_MODEL: RK3399
+MACHINE_ID: 007
+MANUFACTURER: RK3399
+MAGIC: 0x5041524B
+ATAG: 0x00200800
+MACHINE: 3399
+CHECK_MASK: 0x80
+PWR_HLD: 0,0,A,0,1
+#KERNEL_IMG: 0x00280000
+#FDT_NAME: rk-kernel.dtb
+#RECOVER_KEY: 1,1,0,20,0
+#in section; per section 512(0x200) bytes
+CMDLINE: mtdparts=rk29xxnand:$(printf 0x%08x $LOADER1_SIZE)@$(printf 0x%08x $LOADER1_START)(loader1),$(printf 0x%08x LOADER2_SIZE)@$(printf 0x%08x LOADER2_START)(loader2),$(printf 0x%08x ATF_SIZE)@$(printf 0x%08x ATF_START)(atf),$(printf 0x%08x BOOT_SIZE)@$(printf 0x%08x BOOT_START)(boot:bootable),-@$(printf 0x%08x ROOT_START)(rootfs)
+_
+
+## $(printf 0x%08x RESERVED1_SIZE)@$(printf 0x%08x RESERVED1_START)(reserved1),$(printf 0x%08x RESERVED2_SIZE)@$(printf 0x%08x RESERVED2_START)(reserved2),
+
+else
+    echo "Unknown device"
+    exit 1
+fi
+
+scripts/make_loader $kind $T/bootimg
+
+if [ "$kind" = "rock"] ; then
+    if rkdeveloptool ld | grep -qs "not found" ; then
+        echo "waiting for rockpi in download mode "
+        while rkdeveloptool ld|grep -qs "not found" ; do
+            echo -n "."
+            sleep 2
+        done
+    fi
+    rkdeveloptool db $T/bootimg/boot1.img
+    sleep 1
+    rkdeveloptool gpt $T/gptinfo
+
+    rkdeveloptool wl $(printf "0x%x" $LOADER1_START) $T/bootimg/idbloader.img
+    rkdeveloptool wl $(printf "0x%x" $LOADER2_START) $T/bootimg/uboot.img
+    rkdeveloptool wl $(printf "0x%x" $ATF_START) $T/bootimg/trust.img
+    # TODO package boot and root partitions
+    test -n "$ROOT_IMG" && rkdeveloptool wl $(printf "0x%x" $ROOT_START) $ROOT_IMG
+    test -n "$BOOT_IMG" && rkdeveloptool wl $(printf "0x%x" $BOOT_START) $BOOT_IMG
+    rkdeveloptool rd
+fi
+

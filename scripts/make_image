@@ -1,0 +1,100 @@
+#!/bin/bash
+
+set -ex
+
+usage() {
+    cat <<'___'
+Usage: make_image kind device_or_image
+
+Kind: rock
+
+___
+    exit 1
+}
+
+T=$(tempfile)
+rm -f $T
+mkdir $T
+
+test -n "$1" || usage
+kind="$1"; shift
+if [ "$kind" = "rock" ] ; then
+    ARCH=aarch64
+    DEB_ARCH=arm64
+else
+    usage
+    ARCH=arm
+    DEB_ARCH=armhf
+fi
+DIST=buster
+
+cleanup() {
+    mountpoint -q $T/root/boot && umount -f $T/root/boot
+    mountpoint -q $T/root && umount -f $T/root
+
+    test -z "$LOOP" || losetup -d $LOOP
+    rm -rf $T
+}
+trap "cleanup" EXIT
+
+test -n "$1" || usage
+
+if test "$kind" = "rock" ; then
+    PART_OFFSET=0  # 1 for SD ?
+    . param/$kind
+
+    P_ROOT=p5
+    P_BOOT=P4
+
+    cat >$T/partinfo <<_
+label: gpt
+#label-id: B01F15CB-EA3B-408F-8384-D4B99DD16859
+#device: /var/tmp/bla
+unit: sectors
+first-lba: ${LOADER1_START}
+last-lba: $(expr ${DEVICE_SIZE} - 1)
+
+/var/tmp/bla1 : start=${LOADER1_START}, size=${LOADER1_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=64CB56CA-FB04-454D-AEA7-18416151378A, name="loader1"
+/var/tmp/bla2 : start=${LOADER2_START}, size=${LOADER2_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=9B61A2D7-82F7-4A83-94F2-B96E7D0F4E16, name="loader2"
+/var/tmp/bla3 : start=${ATF_START}, size=${ATF_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=1669D424-816F-4265-905C-829D0A0A389D, name="trust"
+/var/tmp/bla4 : start=${BOOT_START}, size=${BOOT_SIZE}, type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B, uuid=615DC78E-DBAF-4253-BEF0-65BF878533E0, name="boot"
+/var/tmp/bla5 : start=${ROOT_START}, size=${ROOT_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, uuid=539FA22B-013A-40CC-AE5C-C1F61E2D1095, name="rootfs"
+
+_
+else
+    echo "Unknown partitioning"
+    exit 1
+fi
+
+R=$T/root
+mkdir -p $R
+if test -z "$1" || test "$1" = "--" ; then
+    echo "You need to supply a place to store the image."
+    exit 1
+elif test -b "$1" ; then
+    IMG="$1"
+    sfdisk "$1" < $T/partinfo
+else
+    if ! test -s "$1" ; then
+        dd bs=512 if=/dev/zero of="$1" count=$DEVICE_SIZE
+        sfdisk "$1" < $T/partinfo
+    fi
+    LOOP=$(losetup -f)
+    losetup $LOOP "$1"
+    IMG=${LOOP}
+fi
+if ! mount ${IMG}${P_ROOT} $R ; then
+    echo Creating file systems
+    mkfs.ext4 ${IMG}${P_ROOT}
+    mkfs.vfat ${IMG}${B_ROOT}
+    mount ${IMG}${P_ROOT} $R
+    sed -e 's/.*PARTUUID="\([^"]*\)".*/\1/' > $R/root.partid
+umount $R
+fi
+
+if test "$kind" = "rock" ; then
+    dd if=loader/rock/idbloader.img of=${IMG}p1 conv=notrunc
+    dd if=loader/rock/uboot.img of=${IMG}p2 conv=notrunc
+    dd if=loader/rock/trust.img of=${IMG}p3 conv=notrunc
+fi
+
