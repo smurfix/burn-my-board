@@ -1,4 +1,4 @@
-Description: EMMC Boot loader for Rock Pi 4.
+Description: EMMC/SD image for Rock Pi 4.
 Author: Matthias Urlichs
 Email: <matthias@urlichs.de>
 Source: https://git.smurf.noris.de/burn-my-board.git

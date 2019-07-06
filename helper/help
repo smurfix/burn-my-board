@@ -1,0 +1,15 @@
+# help
+
+set +x
+
+cat <<_
+Hi! Seems you either are running for the first time, or you forgot to set
+the TARGET environment variable.
+
+Known targets:
+
+_
+for f in doc/target/* ; do
+    printf "%-15s -- " $(basename $f)
+    head -1 $f
+done

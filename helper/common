@@ -17,12 +17,20 @@ case "$1" in
 		;;
 	(*)
 		if [ -z "$TARGET" ] ; then
-			[ -n "$1" ] || die "Either export TARGET or pass it as ':TARGET' in the first argument."
+			if [ -z "$1" ] ; then
+				source helper/help
+				exit 1
+			fi
 			export TARGET="$1"
 			shift
 		fi
 		;;
 esac
+else
+	if test ! -v TARGET || test -z "$TARGET" ; then
+		source helper/help
+		exit 1
+	fi
 fi
 
 cleanup() {

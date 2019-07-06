@@ -1,7 +1,5 @@
-Rock Pi 4b, eMMC card
-=====================
-
-This uses the "send_image" target to burn things onto an eMMC card via USB.
+Rock Pi 4b, eMMC or SD card
+===========================
 
 You need a USB male-to-male cable. If nothing else, take two identical
 USB-to-microUSB cables, cut them up, and connect all the same-colored
@@ -9,6 +7,9 @@ wires.
 
 You also need "rkdeveloptool". Don't forget the udev rules because these
 scripts don't call "sudo" for USB devices.
+
+If you want to write to eMMC, you probably need an adapter. Sending to the
+board directly is untested.
 
 RockPi
 ======
