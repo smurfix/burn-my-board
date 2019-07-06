@@ -1,0 +1,26 @@
+if rkdeveloptool ld | grep -qs "not found" ; then
+    echo "waiting for rockpi in download mode "
+    while rkdeveloptool ld|grep -qs "not found" ; do
+        echo -n "."
+        sleep 2
+    done
+fi
+rkdeveloptool db $T/bootimg/boot1.img
+sleep 1
+rkdeveloptool gpt $T/partinfo_upload
+sleep 1
+
+##  rkdeveloptool wl $(printf "0x%x" $LOADER1_START) $T/bootimg/idbloader.img
+##  rkdeveloptool wl $(printf "0x%x" $LOADER2_START) $T/bootimg/uboot.img
+##  rkdeveloptool wl $(printf "0x%x" $ATF_START) $T/bootimg/trust.img
+# TODO package boot and root partitions
+
+rkdeveloptool wl $(printf "0x%x" $LOADER1_START) dump/rock/part1.bin
+rkdeveloptool wl $(printf "0x%x" $RESERVED1_START) dump/rock/part2.bin
+rkdeveloptool wl $(printf "0x%x" $RESERVED2_START) dump/rock/part3.bin
+rkdeveloptool wl $(printf "0x%x" $LOADER2_START) dump/rock/part4.bin
+rkdeveloptool wl $(printf "0x%x" $ATF_START) dump/rock/part5.bin
+
+test -n "$ROOT_IMG" && rkdeveloptool wl $(printf "0x%x" $ROOT_START) $ROOT_IMG
+test -n "$BOOT_IMG" && rkdeveloptool wl $(printf "0x%x" $BOOT_START) $BOOT_IMG
+rkdeveloptool rd

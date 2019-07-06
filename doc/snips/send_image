@@ -1,0 +1,2 @@
+Writes the partition data (from $T/partinfo_upload), the boot loaders, and
+$ROOT_IMG / $BOOT_IMG (if set).

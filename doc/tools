@@ -9,7 +9,7 @@ make_kernel
 ++++++++++
 
 Creates a kernel package. It checks out the $TARGET branch of the
-"kernel" repository uses config/$TARGET as the config file.
+"kernel" repository uses config/kernel/$TARGET as the config file.
 
 Arguments:
 

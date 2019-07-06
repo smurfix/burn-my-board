@@ -1,0 +1,2 @@
+Adds target-specific packages (that are not installed in $R but should be)
+to $PKG.

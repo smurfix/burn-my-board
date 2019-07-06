@@ -1,0 +1,19 @@
+source helper/params
+    
+cat >$T/partinfo_upload <<_
+FIRMWARE_VER: 6.0.0    
+MACHINE_MODEL: RK3399  
+MACHINE_ID: 007        
+MANUFACTURER: RK3399   
+MAGIC: 0x5041524B      
+ATAG: 0x00200800       
+MACHINE: 3399          
+CHECK_MASK: 0x80       
+PWR_HLD: 0,0,A,0,1  
+#KERNEL_IMG: 0x00280000
+#FDT_NAME: rk-kernel.dtb
+#RECOVER_KEY: 1,1,0,20,0
+#in section; per section 512(0x200) bytes
+CMDLINE: mtdparts=rk29xxnand:$(printf 0x%08x $LOADER1_SIZE)@$(printf 0x%08x $LOADER1_START)(loader1),$(printf 0x%08x RESERVED1_SIZE)@$(printf 0x%08x RESERVED1_START)(reserved1),$(printf 0x%08x RESERVED2_SIZE)@$(printf 0x%08x RESERVED2_START)(reserved2),$(printf 0x%08x LOADER2_SIZE)@$(printf 0x%08x LOADER2_START)(loader2),$(printf 0x%08x ATF_SIZE)@$(printf 0x%08x ATF_START)(atf),$(printf 0x%08x BOOT_SIZE)@$(printf 0x%08x BOOT_START)(boot:bootable),-@$(printf 0x%08x ROOT_START)(rootfs)
+_
+ 

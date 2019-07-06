@@ -1,0 +1,8 @@
+
+if grep -qs SET_ROOT $R/etc/default/extlinux ; then
+	sed -e "s:SET_ROOT:/dev/mmcblk1p$P_ROOT rw:" < $R/etc/default/extlinux >$T/extlinux.default
+	cat_to $R/etc/default/extlinux $T/extlinux.default
+fi
+
+$C /usr/sbin/update_extlinux
+

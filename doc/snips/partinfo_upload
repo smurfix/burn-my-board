@@ -1,0 +1,2 @@
+Writes $T/partinfo_upload, a special partition file usable for creating a
+partition table with the uploader.

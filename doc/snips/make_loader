@@ -1,4 +1,4 @@
 This script creates the binaries (incl u-boot if necessary) that the target
 needs to find and load a kernel.
 
-They're written to $T/loader.
+They're written to $DEST (first argument of ``bin/make_loader``).

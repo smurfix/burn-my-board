@@ -19,7 +19,7 @@ ___
     exit 1
 }
 
-test -n "$1" || usage
+test "$#" -gt 0 || usage
 
 source snips/$TARGET/partinfo
 
@@ -30,19 +30,31 @@ if test -z "$1" || test "$1" = "--" ; then
     exit 1
 elif test -b "$1" ; then
     IMG="$1"
-    sfdisk "$1" < $T/partinfo
+    IMGP="$IMG"
+    if ! test -b ${IMGP}${P_ROOT} ; then
+        sudo sfdisk "$1" < $T/partinfo
+        udevadm settle
+    fi
 else
     if ! test -s "$1" ; then
-        dd bs=512 if=/dev/zero of="$1" count=$DEVICE_SIZE
-        sfdisk "$1" < $T/partinfo
+        sudo dd bs=512 if=/dev/zero of="$1" count=$DEVICE_SIZE
+        sudo sfdisk "$1" < $T/partinfo
     fi
-    LOOP=$(losetup -f)
-    losetup $LOOP "$1"
-    IMG=${LOOP}
+    IMG=$(loopback "$1" -P)
+    IMGP="$IMG"p
 fi
-sudo /bin/umount $R
+shift
 
+sudo blkid ${IMGP}${P_BOOT} | grep -qs TYPE= || \
+sudo ${MKFS_BOOT} ${IMG}${P_BOOT}
+sudo blkid ${IMGP}${P_ROOT} | grep -qs TYPE= || \
+sudo ${MKFS_ROOT} ${IMG}${P_ROOT}
+
+# TODO build in a dir and copy
+bin/make_root ${IMGP}${P_ROOT} ${IMGP}${P_BOOT} "$@"
 bin/make_loader
 
 source snips/$TARGET/write_loader
+
+test -b "$IMG" && sudo eject "$IMG"
 

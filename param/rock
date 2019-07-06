@@ -1,7 +1,7 @@
 # Rock Pi 4
 
-DEB_ARCH=arm64
-ARCH=aarch64
+ARCH=arm64
+BIN_ARCH=aarch64
 CROSS_COMPILE=aarch64-linux-gnu-
 DTB=rk3399-rock-pi-4.dtb
 
@@ -22,5 +22,5 @@ LOADER2_START=$(expr ${RESERVED2_START} + ${RESERVED2_SIZE})
 ATF_START=$(expr ${LOADER2_START} + ${LOADER2_SIZE})
 BOOT_START=$(expr ${ATF_START} + ${ATF_SIZE})
 ROOT_START=$(expr ${BOOT_START} + ${BOOT_SIZE})
-DEVICE_SIZE=$(expr ${ROOT_START} + ${ROOT_SIZE} + 34)
+DEVICE_SIZE=$(expr ${ROOT_START} + ${ROOT_SIZE} + 66) # workaround for fdisk bug
 

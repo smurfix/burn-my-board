@@ -1,0 +1,59 @@
+#!/bin/bash
+
+set -ex
+
+source helper/common
+
+usage() {
+    cat <<'___'
+Usage: pack_part dest dir [fs [size]]
+
+Create an image from a directory.
+
+dest: Destination device (or image). Will be overwritten!
+dir: directory tree to be written.
+fs: file system type. Doesn't ``mkfs`` if not given.
+size: KBytes required. Uses "du" plus 20% if not given.
+
+This creates a file system and copies the directory content to it.
+
+___
+    exit 1
+}
+
+DEST="$1"
+SRC="$2"
+FST="$3"
+SIZE="$4"
+
+if test -b "$DEST" ; then
+    : do not make file system
+elif test -s "$DEST" ; then
+    : do not make file system
+else:
+    if test -z "$FST" ; then
+        die "Can't create without type"
+    fi
+    if test -z "$SIZE" ; then
+        read a b < <(du -s "$SRC")
+        SIZE=$(expr $a \* 12 / 10)
+    fi
+
+    dd bs=1k count=$SIZE if=/dev/zero of="$DEST"
+    mkfs.$FST "$DEST"
+    DEST=$(loopback "$DEST")
+fi
+
+mkdir -p $T/temp
+if ! mount $DEST $T/temp ; then
+    if test -b "$DEST" && test -n "$FST" && test -z "$SIZE" ; then
+        sudo mkfs.$FST "$DEST"
+        mount $DEST $T/temp
+    else
+        die "Could not mount '$DEST'"
+    fi
+fi
+cp -a $SRC/. $T/temp
+sync
+
+# unmounted by cleanup

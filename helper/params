@@ -1,0 +1,8 @@
+source helper/defaults
+source param/board/$TARGET
+if test -v SETUP ; then 
+	for S in $SETUP; do
+		source param/setup/$S
+	done
+fi
+

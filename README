@@ -39,12 +39,19 @@ Set ``export TARGET=``_TARGET_ to tell the commands in ``bin/`` which board
 to build for. Alternately, the scripts accept ``:TARGET`` as the first
 argument.
 
+Optional: Set ``export SETUP=something``, then create (possibly-empty)
+files ``helper/apt/something`` and ``params/setup/something``. You can use
+this to customize your local apt repository and the script variables.
+"something" may be multiple words.
+
 Don't run any scripts as root or with ``sudo``. They're not built to
 safely do this. If you need to access a device, use ``sudo chown $USER
 /dev/XXX``.
 
 Make sure that there's enough space in ``/var/tmp`` for two copies of your
 image.
+
+Run ``bin/prepare``. This installs any required packages.
 
 Create an image
 +++++++++++++++
@@ -60,9 +67,6 @@ This is somewhat slower if you need to burn multiple images.
 
 Add a new board
 +++++++++++++++
-
-* Change ``AUTHOR`` to point to yourself and your public git repository
-  (github, gitlab, your own …).
 
 * Add a ``doc/TARGET`` file that contains anything one needs to know to
   bring up your board. Start with how to connect the console (which pins?
@@ -111,6 +115,10 @@ snippets.
   The name of the device you're using. set from the first argument to your
   script (when that starts with a colon), or iniherited from the environment.
 
+* C
+  When you want to run a command within the target root, use ``$C command
+  args…``. This resolves to an appropriate invoction of ``sytsemd-nspawn``.
+
 * cleanup
 
   Override this function to do your own cleanup.
@@ -138,6 +146,11 @@ Subdirectories
 * helper
   Common parts of shell scripts, *not* separated by target
 
+* helper/special/SPECIAL
+  Author-specific image setup code, executed as the last step of building
+  the root file system. Do ``export SPECIAL=foo bar`` and write your code
+  to ``helper/special/foo`` and ``…/bar``.
+
 * mirror
   Storage for local git clones of supporting archives.
 
@@ -147,6 +160,10 @@ Subdirectories
 * snips
   Per-target code for various device-specific features. Not directly
   callable.
+
+* apt
+  Per-target code to add vendor-supplied additional repositories.
+  This script fragment may do nothing if there aren't any.
 
 * doc/snips/*
   Documents what the helper scripts in ``snips/target/*`` do.

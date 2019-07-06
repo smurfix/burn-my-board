@@ -1,0 +1,7 @@
+#
+if test ! -s $R/etc/apt/sources.list.d/$TARGET.list ; then
+    wget -O $T/key http://apt.radxa.com/stretch/public.key
+    $C apt-key add $T/key
+    echo_to $R/etc/apt/sources.list.d/$TARGET.list "deb http://apt.radxa.com/stretch/ stretch main"
+fi
+

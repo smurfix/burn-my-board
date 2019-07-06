@@ -1,0 +1,13 @@
+
+# Add my own archive
+if ! test -s $R/etc/apt/sources.list.d/smurf.list ; then
+	wget -O /tmp/key http://build.smurf.noris.de:/info/pgp_key.asc
+	$C apt-key add /tmp/key
+	rm -f /tmp/key
+	cat >$R/etc/apt/sources.list.d/smurf.list <<___
+deb http://build.smurf.noris.de smurf main
+deb http://build.smurf.noris.de unstable main
+deb http://build.smurf.noris.de stable main
+deb http://build.smurf.noris.de testing main
+___
+fi

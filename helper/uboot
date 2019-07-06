@@ -1,0 +1,7 @@
+pushd "$U_BOOT"
+git checkout $TARGET
+cmp $ORIG_PWD/config/u-boot/$TARGET .config || cp $ORIG_PWD/config/u-boot/$TARGET .config
+make ARCH=$UBOOT_ARCH CROSS_COMPILE=$CROSS_COMPILE olddefconfig
+make ARCH=$UBOOT_ARCH CROSS_COMPILE=$CROSS_COMPILE all
+popd
+

@@ -1,72 +1,54 @@
 #!/bin/bash
 
-set -ex
+source helper/common
 
 usage() {
     cat <<'___'
-Usage: make_root kind device_or_rootdir_or_image bootimage?
+Usage: make_root device_or_rootdir_or_image bootimage?
 
-Kind: rock
+Builds root+boot file systems.
 
+Argumments:
+
+* rootfs dir
+
+* bootfs dir
+
+Either of these may be image files or partitions, which get mounted while
+building.
 ___
     exit 1
 }
 
-T=$(tempfile)
-rm -f $T
-mkdir $T
-LOOP=
-LOOPB=
-
-kind="$1"; shift
-if [ "$kind" = "rock" ] ; then
-	ARCH=aarch64
-	DEB_ARCH=arm64
-else
-	usage
-	ARCH=arm
-	DEB_ARCH=armhf
-fi
 DIST=buster
 
-test -f /usr/bin/systemd-nspawn || apt-get install --no-install-recommends systemd-container
-test -f /usr/bin/realpath || apt-get install --no-install-recommends realpath
-test -f /usr/bin/qemu-$ARCH-static || apt-get install --no-install-recommends qemu-user-static
-
-cleanup() {
-	mountpoint -q $T/root/boot && umount -f $T/root/boot
-	mountpoint -q $T/root/dev/pts && umount -f $T/root/dev/pts
-	mountpoint -q $T/root/dev && umount -f $T/root/dev
-	mountpoint -q $T/root/sys && umount -f $T/root/sys
-	mountpoint -q $T/root/proc && umount -f $T/root/proc
-	mountpoint -q $T/root && umount -f $T/root
-
-	test -z "$LOOPB" || losetup -d $LOOPB
-	test -z "$LOOP" || losetup -d $LOOP
-	rm -rf $T
-}
-trap "cleanup" EXIT
-
-test -n "$1" || usage
+P=""
+test -f /usr/bin/systemd-nspawn || P="$P systemd-container"
+test -f /usr/bin/realpath || P="$P realpath"
+test -f /usr/bin/qemu-$BIN_ARCH-static || P="$P qemu-user-static"
+test -f /usr/bin/$BIN_ARCH-linux-gnu-gcc || P="$P gcc-$BIN_ARCH-linux-gnu"
+test -z "$P" || sudo apt-get install --no-install-recommends $P
 
 R=$T/root
 mkdir -p $R
-if test -z "$1" || test "$1" = "--" ; then
+if test [ "$1" = "/" ] ; then
+	R=/
+	echo WARNING running on current system
+elif test -z "$1" || test "$1" = "--" ; then
 	echo "You need to supply a place to store the root image."
 	exit 1
 elif test -b "$1" ; then
 	mount "$1" $R
 elif test -d "$1" ; then
-	mount --bind "$1" $R
+	mount "$1" $R
 else
 	test -s "$1"
-	LOOP=$(losetup -f)
-	losetup $LOOP "$1"
-	mount ${LOOP} $R
+	DEV=$(loopback "$1")
+	mount ${DEV} $R
 fi
 shift
 
-mkdir -p $T/root/boot
+sudo mkdir -p $T/root/boot
 if test -z "$1" ; then
 	:
 elif test "$1" = "--" ; then
@@ -77,106 +59,123 @@ elif test -b "$1" ; then
 	mount "$1" $R/boot
 	shift
 elif test -d "$1" ; then
-	mount --bind "$1" $R/boot
+	mount "$1" $R/boot
 	shift
 else
 	test -s "$1"
-	LOOPB=$(losetup -f)
-	losetup $LOOPB "$1"
-	mount $LOOPB $R/boot
+	DEV=$(loopback "$1")
+	mount $DEV $R/boot
 	shift
 fi
 
-if test "$1" = "--" ; then shift; fi
+sudo mkdir -p $R/$T
+
+if test "$#" -gt 0 && test "$1" = "--" ; then shift; fi
 
 set -u
 
-if ! test -x $R/usr/bin/qemu-$ARCH-static ; then
+if ! test -x $R/usr/bin/qemu-$BIN_ARCH-static ; then
 	mkdir -p $R
-	debootstrap --arch=$DEB_ARCH --foreign --variant=minbase $DIST $R
-	mkdir -p $R/usr/bin/
-	cp /usr/bin/qemu-$ARCH-static $R/usr/bin/
+	sudo debootstrap --arch=$ARCH --foreign --variant=minbase $DIST $R || true
+	sudo mkdir -p $R/usr/bin/
+	sudo cp /usr/bin/qemu-$BIN_ARCH-static $R/usr/bin/
 fi
 if test -x $R/debootstrap/debootstrap ; then
-	chroot $R /debootstrap/debootstrap --second-stage
+	sudo chroot $R /debootstrap/debootstrap --second-stage
 	test ! -f $R/debootstrap/debootstrap
 fi
 
 mkdir -p $T/kernel
 bin/make_kernel $T/kernel
 
-C="systemd-nspawn -D $R --bind=$T"
-
-# You don't know this password, and even if you cracked it you can't use it
-# to log onto my systems anyway. So there.
-if grep -qs "^root:*:" $R/etc/shadow ; then
-	echo root:'$6$3p6oMizl$cPgeRCuM6f/5.7q5.NhYEXSQUQleNzYHxfwIseZD6z3fZp9Y7eaSE5ueeYIa98i9NF19y4hdEeL4j7DW9rYDW.' | chpasswd -R $R -e
-fi
+C="sudo systemd-nspawn -D $R --bind=$T"
 
 if ! test -s $R/usr/bin/gpg-agent ; then # for apt-key
 	$C apt-get update
 	$C apt-get install --no-install-recommends -y gpg gpg-agent
 fi
 
-# Add distro specific archive
-AR=
-if test "$kind" = "rock" ; then
-	AR="deb http://apt.radxa.com/stretch/ stretch main"
-	ARK=apt.radxa.com/stretch/public.key
-fi
-if test -n "$AR" && test ! -s $R/etc/apt/sources.list.d/$kind.list ; then
-	if test -n "$ARK" ; then
-		wget -O /tmp/key "$ARK"
-		$C apt-key add /tmp/key
-		rm -f /tmp/key
-	fi
-	echo $AR >$R/etc/apt/sources.list.d/$kind.list
-fi
-
-# Add my own archive
-if ! test -s $R/etc/apt/sources.list.d/smurf.list ; then
-	wget -O /tmp/key http://build.smurf.noris.de:/info/pgp_key.asc
-	$C apt-key add /tmp/key
-	rm -f /tmp/key
-	cat >$R/etc/apt/sources.list.d/smurf.list <<___
-deb http://build.smurf.noris.de smurf main
-deb http://build.smurf.noris.de unstable main
-deb http://build.smurf.noris.de stable main
-deb http://build.smurf.noris.de testing main
-___
+# Add distro and user specific archive
+source apt/$TARGET
+if test -v SPECIAL ; then
+	for S in $SPECIAL ; do
+		source helper/apt/$S
+	done
 fi
 
 ### now find packages to install
 
-P=""
-test -f $R/lib/systemd/systemd || P="$P systemd"
-test -f $R/usr/bin/aptitude || P="$P aptitude"
-test -f $R/usr/bin/strace || P="$P strace"
-test -f $R/usr/bin/pstree || P="$P psmisc"
-test -f $R/usr/bin/less || P="$P less"
-test -f $R/sbin/ip || P="$P iproute2"
-test -f $R/sbin/ip || P="$P iproute2"
-
-if test "$kind" = "rock" ; then
-test -f $R/lib/systemd/system/rockchip.service || P="$P rockchip-overlay" ## TODO this thing is not optimal
+PKG=""
+test -f $R/usr/bin/eatmydata || PKG="$PKG eatmydata"
+if test -n "$PKG" ; then
+	$C apt-get update
+	$C apt-get install --no-install-recommends -y $PKG
 fi
 
-if grep -qs ttyFIQ $R/etc/default/extlinux ; then
-	sed -i -e s:APPEND=.*:APPEND="earlycon=uart8250,mmio32,0xff1a0000 swiotlb=1 coherent_pool=1m earlyprintk console=ttyS2,1500000n8 rw root=PARTUUID=b921b045-1d rootfstype=ext4 init=/sbin/init rootwait": $R/etc/default/extlinux
-	$C /usr/local/sbin/update_extlinux.sh
-fi
+PKG=""
+test -f $R/lib/systemd/systemd || PKG="$PKG systemd"
+test -f $R/usr/bin/aptitude || PKG="$PKG aptitude"
+test -f $R/usr/bin/strace || PKG="$PKG strace"
+test -f $R/usr/bin/pstree || PKG="$PKG psmisc"
+test -f $R/usr/bin/ssh || PKG="$PKG openssh-client"
+test -f $R/usr/sbin/update-initramfs || PKG="$PKG initramfs-tools"
+test -f $R/usr/bin/file || PKG="$PKG file"
+test -f $R/usr/sbin/sshd || PKG="$PKG openssh-server"
+test -f $R/usr/bin/dbus-daemon || PKG="$PKG dbus"
+test -f $R/usr/share/perl5/Term/ReadLine/Perl.pm || PKG="$PKG libterm-readline-perl-perl"
+test -f $R/usr/bin/less || PKG="$PKG less"
+test -f $R/usr/bin/strace || PKG="$PKG strace"
+test -f $R/usr/bin/vim.tiny || PKG="$PKG vim-tiny"
+test -f $R/sbin/ip || PKG="$PKG iproute2"
+test -f $R/sbin/lsmod || PKG="$PKG kmod"
+test -f $R/sbin/udevadm || PKG="$PKG udev"
+test -f $R/sbin/init || PKG="$PKG systemd-sysv"
+
+source snips/$TARGET/missing_packages
 
 if test -f "$R/root.partid" ; then
 	sed -i -e "s/PARTUUID=[-0-9a-f]* /PARTUUID=$()/" $R/etc/default/extlinux $R/boot/extlinux/extlinux.conf
 	rm -f "$R/root.partid"
 fi
 
-if test -n "$P" ; then
-	$C apt-get update
-	$C apt-get install --no-install-recommends -y $P
+if test -n "$PKG" ; then
+	$C eatmydata apt-get update
+	$C eatmydata apt-get install --no-install-recommends -y $PKG
 fi
-if test ! -s $R/config-$(cat $T/kernel/linux.version) ; then
-	dpkg -i $T/kernel/kernel.deb
+
+if test ! -s "$R/etc/rc.local" ; then
+	cat_to "$R/etc/rc.local" <<_
+#!/bin/bash
+/sbin/ip link set dev eth0 up
+_
+	sudo chmod +x "$R/etc/rc.local"
+fi
+
+$C systemctl enable systemd-networkd
+if [ "$R" != "/" ] && [ "cat $R/etc/hostname" == "$(cat /etc/hostname)" ] ; then
+	# Duh.
+	echo_to $R/etc/hostname TODO
+fi
+
+if test ! -L $R/etc/resolv.conf ; then
+	ln -sf /run/systemd/resolve/resolv.conf $R/etc/resolv.conf
+fi
+
+if test ! -s $R/boot/config-$(cat $T/kernel/linux.version) ; then
+	$C eatmydata dpkg -i $T/kernel/linux-image.deb
+fi
+
+if grep -qsi Storage=auto $R/etc/systemd/journald.conf ; then
+	sudo sed -i -e 's/^#* *Storage=.*/Storage=volatile/' $R/etc/systemd/journald.conf
+fi
+
+source snips/$TARGET/partinfo
+source snips/$TARGET/post_root
+
+if test -v SPECIAL ; then
+	for s in $SPECIAL ; do
+		source helper/special/$s
+	done
 fi
 
 if test -n "$*" ; then

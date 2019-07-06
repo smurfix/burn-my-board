@@ -19,20 +19,13 @@ test -d "$1" || usage
 
 DEST="$1"
 
-if test "$kind" = "rock" ; then
-    DEFCONFIG=rock-pi-4-rk3399_defconfig
-    DTB=rk3399-rock-pi-4.dtb
-    ARCH=arm64
-    CROSS_COMPILE=aarch64-linux-gnu-
-fi
-
 export ARCH CROSS_COMPILE
 
-D=$(pwd)
 pushd $(mirror kernel)
 git checkout $TARGET
-cp $D/config/$TARGET .config
+cmp -s "$ORIG_PWD/config/kernel/$TARGET" .config || cp "$ORIG_PWD/config/kernel/$TARGET" .config
 make olddefconfig
+make menuconfig
 if ! fgrep -qsx "CONFIG_LOCALVERSION_AUTO=y" .config ; then
     die "CONFIG_LOCALVERSION_AUTO must be set"
 fi
@@ -48,20 +41,20 @@ if echo "$REL" | grep -qs 'dirty$' ; then
     die "You need to check in your kernel changes before building."
 fi
 make mkdeb-pkg
-VERS=$(dpkg-parsechangelog | sed -ne s/^Version: //p)
+VERS=$(dpkg-parsechangelog | sed -ne 's/^Version: //p')
 popd
 
-if test -s $DEST/linux.version && test "$(cat $DEST/linux.version)" = "$VERS"  ; then
+if test -s $DEST/linux.version && test "$(cat $DEST/linux.version)" = "$REL"  ; then
     echo Kernel already current.
 else
     pushd $(mirror kernel)
     # we could analyze "present" instead, but that's way more work
     make -j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l) bindeb-pkg
     cd ..
-    mv linux-image-${REL}_${VERS]_arm64.deb $DEST/linux-image.deb
-    mv linux-libc-dev-${REL}_${VERS]_arm64.deb $DEST/linux-libc-dev.deb
-    mv linux-headers-${REL}_${VERS]_arm64.deb $DEST/linux-headers.deb
-    echo $VERS > $DEST/linux.version
+    mv linux-image-${REL}_${VERS}_arm64.deb $DEST/linux-image.deb
+    mv linux-libc-dev_${VERS}_arm64.deb $DEST/linux-libc-dev.deb
+    mv linux-headers-${REL}_${VERS}_arm64.deb $DEST/linux-headers.deb
+    echo $REL > $DEST/linux.version
     popd
 fi
 

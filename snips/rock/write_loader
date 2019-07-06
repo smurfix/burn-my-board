@@ -1,6 +1,11 @@
 # see do/snips/write_loader
 
-dd if=$T/loader/idbloader.img of=${IMG}p1 conv=notrunc
-dd if=$T/loader/uboot.img of=${IMG}p2 conv=notrunc
-dd if=$T/loader/trust.img of=${IMG}p3 conv=notrunc
+##  dd if=$T/loader/idbloader.img of=${IMGP}1 conv=notrunc
+##  dd if=$T/loader/uboot.img of=${IMGP}2 conv=notrunc
+##  dd if=$T/loader/trust.img of=${IMGP}3 conv=notrunc
 
+sudo dd if=dump/rock/part1.img of=${IMGP}1 conv=notrunc
+sudo dd if=dump/rock/part2.img of=${IMGP}2 conv=notrunc
+sudo dd if=dump/rock/part3.img of=${IMGP}3 conv=notrunc
+sudo dd if=dump/rock/part4.img of=${IMGP}4 conv=notrunc
+sudo dd if=dump/rock/part5.img of=${IMGP}5 conv=notrunc
