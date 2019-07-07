@@ -143,6 +143,12 @@ snippets.
   additional cleanup.
 
 
+Special env vars
+++++++++++++++++
+
+* MENU
+  Set (to anything) if you want a kernel "make menuconfig" to run
+
 Subdirectories
 ++++++++++++++
 

@@ -25,7 +25,8 @@ pushd $(mirror kernel)
 git checkout $TARGET
 cmp -s "$ORIG_PWD/config/kernel/$TARGET" .config || cp "$ORIG_PWD/config/kernel/$TARGET" .config
 make olddefconfig
-make menuconfig
+test -v MENU && make menuconfig
+cmp -s "$ORIG_PWD/config/kernel/$TARGET" .config || cp .config "$ORIG_PWD/config/kernel/$TARGET"
 if ! fgrep -qsx "CONFIG_LOCALVERSION_AUTO=y" .config ; then
     die "CONFIG_LOCALVERSION_AUTO must be set"
 fi
