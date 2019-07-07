@@ -95,14 +95,14 @@ _cleanup() {
 	test -v _BMB_THIS_TEMP && rm -rf $T
 }
 
-if [ ! -v _BMB_TEMP ] ; then
+if [ ! -v BMB_TEMP ] ; then
 	T=$(tempfile -d "$TEMPDIR")
 	rm -f "$T"
-	export _BMB_TEMP="$T"
+	export BMB_TEMP="$T"
 	_BMB_THIS_TEMP="$T"
 
 else
-	T="$_BMB_TEMP"
+	T="$BMB_TEMP"
 fi
 mkdir -p "$T/info"
 trap "_cleanup" EXIT

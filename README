@@ -149,6 +149,9 @@ Special env vars
 * MENU
   Set (to anything) if you want a kernel "make menuconfig" to run
 
+* BMB_TEMP
+  Set to some directory to keep the tempfiles around between invocations.
+
 Subdirectories
 ++++++++++++++
 
