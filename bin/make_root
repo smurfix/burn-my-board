@@ -88,7 +88,16 @@ fi
 mkdir -p $T/kernel
 bin/make_kernel $T/kernel
 
-C="sudo systemd-nspawn -D $R --bind=$T"
+mkdir -p $T/run
+if test ! -L $R/etc/resolv.conf ; then
+	sudo ln -sf /run/systemd/resolve/resolv.conf $R/etc/resolv.conf
+fi
+if test ! -s $T/run/systemd/resolve/resolv.conf ; then
+	mkdir -p $T/run/systemd/resolve/
+	cp /etc/resolv.conf $T/run/systemd/resolve/resolv.conf
+fi
+
+C="sudo systemd-nspawn -D $R --bind=$T --bind=$T/run:/run"
 
 if ! test -s $R/usr/bin/gpg-agent ; then # for apt-key
 	$C apt update -y
@@ -144,13 +153,10 @@ if test -n "$PKG" ; then
 fi
 
 $C systemctl enable systemd-networkd
+$C systemctl enable systemd-resolved
 if [ "$R" != "/" ] && [ "cat $R/etc/hostname" == "$(cat /etc/hostname)" ] ; then
 	# Duh.
 	echo_to $R/etc/hostname TODO
-fi
-
-if test ! -L $R/etc/resolv.conf ; then
-	ln -sf /run/systemd/resolve/resolv.conf $R/etc/resolv.conf
 fi
 
 if test ! -s $R/boot/config-$(cat $T/kernel/linux.version) ; then
