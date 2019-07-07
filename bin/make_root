@@ -91,7 +91,7 @@ bin/make_kernel $T/kernel
 C="sudo systemd-nspawn -D $R --bind=$T"
 
 if ! test -s $R/usr/bin/gpg-agent ; then # for apt-key
-	$C apt-get update
+	$C apt update -y
 	$C apt-get install --no-install-recommends -y gpg gpg-agent
 fi
 
@@ -108,7 +108,7 @@ fi
 PKG=""
 test -f $R/usr/bin/eatmydata || PKG="$PKG eatmydata"
 if test -n "$PKG" ; then
-	$C apt-get update
+	$C apt update -y
 	$C apt-get install --no-install-recommends -y $PKG
 fi
 
@@ -139,7 +139,7 @@ if test -f "$R/root.partid" ; then
 fi
 
 if test -n "$PKG" ; then
-	$C eatmydata apt-get update
+	$C eatmydata apt update -y
 	$C eatmydata apt-get install --no-install-recommends -y $PKG
 fi
 
