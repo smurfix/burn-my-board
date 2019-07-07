@@ -163,7 +163,7 @@ if test ! -s $R/boot/config-$(cat $T/kernel/linux.version) ; then
 	$C eatmydata dpkg -i $T/kernel/linux-image.deb
 fi
 
-if grep -qsi Storage=auto $R/etc/systemd/journald.conf ; then
+if grep -qs Storage=auto $R/etc/systemd/journald.conf ; then
 	sudo sed -i -e 's/^#* *Storage=.*/Storage=volatile/' $R/etc/systemd/journald.conf
 fi
 
