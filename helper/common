@@ -58,8 +58,6 @@ loopback() {
 	shift
 	sudo losetup "$@" $L "$DATA"
 	udevadm settle
-    sudo chown $USER ${L}
-    sudo chown $USER ${L}p*
 	echo "$L $$" >> $T/info/loop.$$
 	echo $L
 }
