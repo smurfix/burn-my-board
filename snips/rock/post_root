@@ -6,3 +6,10 @@ fi
 
 $C /usr/sbin/update_extlinux
 
+if ! test -s $R/etc/systemd/system/systemd-networkd.service.d/eth0.conf ; then
+	sudo mkdir -p /etc/systemd/system/systemd-networkd.service.d
+	cat_to /etc/systemd/system/systemd-networkd.service.d/eth0.conf <<_
+[Service]
+ExecStartPre=/sbin/ip link set dev eth0 up
+_
+fi
