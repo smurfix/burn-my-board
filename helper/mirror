@@ -1,5 +1,7 @@
 mirror() {
-if ! test -d mirror/$1/.git ; then
+if test -d mirror/$1/.git ; then
+    (set -e; cd mirror/$1; git pull)
+else
     if test -d ../$1 ; then
         git clone -s ../$1 mirror/$1
     else
