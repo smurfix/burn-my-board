@@ -135,3 +135,10 @@ https://wiki.radxa.com/Rockpi4/radxa-apt
 deb http://apt.radxa.com/$DISTRO/ stretch main
 DISTRO=stretch, stretch-testing
 
+Misc:
+https://wiki.radxa.com/Rockpi4/dev/Debian
+https://gitlab.collabora.com/rockpi
+https://forum.radxa.com/t/mainline-support-for-rockpi-4/131/36
+https://gitlab.manjaro.org/manjaro-arm/packages/core/linux-aarch64-rc
+http://opensource.rock-chips.com/wiki_Rockusb
+https://github.com/rockchip-linux
