@@ -15,7 +15,7 @@ dest: directory to write the resulting .deb files to.
 ___
     exit 1
 }
-test -d "$1" || usage
+test "$#" -gt 0 && test -d "$1" || usage
 
 DEST="$1"
 
