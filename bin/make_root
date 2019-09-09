@@ -27,6 +27,14 @@ test -f /usr/bin/systemd-nspawn || P="$P systemd-container"
 test -f /usr/bin/realpath || P="$P realpath"
 test -f /usr/bin/qemu-$BIN_ARCH-static || P="$P qemu-user-static"
 test -f /usr/bin/$BIN_ARCH-linux-gnu-gcc || P="$P gcc-$BIN_ARCH-linux-gnu"
+test -f /lib/systemd/system/polkit.service || P="$P policykit-1"
+test -f /sbin/mkfs.vfat || P="$P dosfstools"
+test -f /usr/bin/flex || P="$P flex"
+test -f /usr/bin/bison || P="$P bison"
+test -f /usr/include/openssl/seed.h || P="$P openssl-dev"
+test -f /usr/bin/make || P="$P make"
+test -f /usr/bin/strace || P="$P strace"
+test -f /usr/sbin/update-binfmts || P="$P binfmt-support"
 test -z "$P" || sudo apt-get install --no-install-recommends $P
 
 R=$T/root
