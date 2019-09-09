@@ -93,6 +93,9 @@ _cleanup() {
 	test -v _BMB_THIS_TEMP && rm -rf $T
 }
 
+if [ ! -v TEMPDIR ] ; then
+	export TEMPDIR="/var/tmp"
+fi
 if [ ! -v BMB_TEMP ] ; then
 	T=$(tempfile -d "$TEMPDIR")
 	rm -f "$T"
