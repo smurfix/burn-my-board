@@ -51,7 +51,7 @@ cat_to() {
 
 loopback() {
 	set -e
-	local L=$(losetup -f)
+	local L=$(sudo losetup -f)
 	test -b "$L"
 	test -f $T/info/loop.$$
 	local DATA="$1"
