@@ -31,7 +31,7 @@ test -z "$P" || sudo apt-get install --no-install-recommends $P
 
 R=$T/root
 mkdir -p $R
-if test [ "$1" = "/" ] ; then
+if test "$1" = "/" ; then
 	R=/
 	echo WARNING running on current system
 elif test -z "$1" || test "$1" = "--" ; then
