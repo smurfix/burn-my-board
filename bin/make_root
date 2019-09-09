@@ -162,7 +162,7 @@ fi
 
 $C systemctl enable systemd-networkd
 $C systemctl enable systemd-resolved
-if [ "$R" != "/" ] && [ "cat $R/etc/hostname" == "$(cat /etc/hostname)" ] ; then
+if [ "$R" != "/" ] && [ "$(cat $R/etc/hostname)" == "$(cat /etc/hostname)" ] ; then
 	# Duh.
 	echo_to $R/etc/hostname TODO
 fi
