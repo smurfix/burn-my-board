@@ -150,11 +150,6 @@ test -f $R/sbin/init || PKG="$PKG systemd-sysv"
 
 source snips/$TARGET/missing_packages
 
-if test -f "$R/root.partid" ; then
-	sed -i -e "s/PARTUUID=[-0-9a-f]* /PARTUUID=$()/" $R/etc/default/extlinux $R/boot/extlinux/extlinux.conf
-	rm -f "$R/root.partid"
-fi
-
 if test -n "$PKG" ; then
 	$C eatmydata apt update -y
 	$C eatmydata apt-get install --no-install-recommends -y $PKG
