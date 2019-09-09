@@ -56,5 +56,5 @@ bin/make_loader
 
 source snips/$TARGET/write_loader
 
-test -b "$IMG" && sudo eject "$IMG"
+test -b "$IMG" && sudo eject "$IMG" || true # don't error, may be loop dev
 
