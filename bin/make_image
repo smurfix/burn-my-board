@@ -46,9 +46,9 @@ fi
 shift
 
 sudo blkid ${IMGP}${P_BOOT} | grep -qs TYPE= || \
-sudo ${MKFS_BOOT} ${IMG}${P_BOOT}
+sudo ${MKFS_BOOT} ${IMGP}${P_BOOT}
 sudo blkid ${IMGP}${P_ROOT} | grep -qs TYPE= || \
-sudo ${MKFS_ROOT} ${IMG}${P_ROOT}
+sudo ${MKFS_ROOT} ${IMGP}${P_ROOT}
 
 # TODO build in a dir and copy
 bin/make_root ${IMGP}${P_ROOT} ${IMGP}${P_BOOT} "$@"
