@@ -97,6 +97,7 @@ mkdir -p $T/kernel
 bin/make_kernel $T/kernel
 
 mkdir -p $T/run
+sudo mkdir -p $R/etc
 if test ! -L $R/etc/resolv.conf ; then
 	sudo ln -sf /run/systemd/resolve/resolv.conf $R/etc/resolv.conf
 fi
