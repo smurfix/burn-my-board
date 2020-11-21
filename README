@@ -28,7 +28,7 @@ recommendations to leave the red wire open. (Besides, on my µArt the ``Vcc``
 wire is white. :-P )
 
 Run ``sudo id``. Twice. If that doesn't work or if it asks for a password
-the second time, fix it. This code needs to call '`sudo`` awfully often.
+the second time, fix it. This code needs to call ``sudo`` awfully often.
 
 Run ``ls config/kernel``. If your board isn't listed, you need to add it.
 See below.
