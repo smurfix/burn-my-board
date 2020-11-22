@@ -31,7 +31,7 @@ test -z "$P" || sudo apt-get install --no-install-recommends $P
 
 R=$T/root
 mkdir -p $R
-if test [ "$1" = "/" ] ; then
+if test "$1" = "/" ; then
 	R=/
 	echo WARNING running on current system
 elif test -z "$1" || test "$1" = "--" ; then
@@ -89,23 +89,27 @@ mkdir -p $T/kernel
 bin/make_kernel $T/kernel
 
 mkdir -p $T/run
-if test ! -L $R/etc/resolv.conf ; then
-	sudo ln -sf /run/systemd/resolve/resolv.conf $R/etc/resolv.conf
+if test -L $R/etc/resolv.conf ; then
+	sudo rm -f $R/etc/resolv.conf
 fi
-if test ! -s $T/run/systemd/resolve/resolv.conf ; then
-	mkdir -p $T/run/systemd/resolve/
-	cp /etc/resolv.conf $T/run/systemd/resolve/resolv.conf
+if test ! -s $R/etc/resolv.conf ; then
+	sudo cat /etc/resolv.conf > $R/etc/resolv.conf
 fi
 
-C="sudo systemd-nspawn -D $R --bind=$T --bind=$T/run:/run"
+C="sudo systemd-nspawn -a -M $(basename $T) -D $R --bind=$T"
+# does not work: --bind=$T/run:/run"
 
 if ! test -s $R/usr/bin/gpg-agent ; then # for apt-key
+	$C apt update -y || true
+	/bin/bash
 	$C apt update -y
 	$C apt-get install --no-install-recommends -y gpg gpg-agent
 fi
 
 # Add distro and user specific archive
-source apt/$TARGET
+if test -s apt/$TARGET ; then
+	source apt/$TARGET
+fi
 if test -v SPECIAL ; then
 	for S in $SPECIAL ; do
 		source helper/apt/$S
