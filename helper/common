@@ -1,5 +1,7 @@
 # common functions, TARGET isolation
 
+. helper/defaults
+
 set -exu
 ORIG_PWD="$(pwd)"
 

@@ -1,0 +1,28 @@
+Espressobin V5
+==============
+
+You need a standard micro-USB cable to talk to the console and a standard
+USB stick to update u-boot. Use LF line endings, not CRLF, and set to
+115200 baud.
+
+Kernel: ttyMV0,115200 earlycon=ar3700_uart,0xd0012000 root=/dev/mmcblk0p1 earlyprintk rw root=PARTUUID=deadbeef-01 rootfstype=ext4 init=/sbin/init rootwait
+
+u-boot
+++++++
+
+None yet. Using the u-boot that comes with the board. For now.
+
+Documentation
++++++++++++++
+
+Boot loader:
+http://wiki.espressobin.net/tiki-index.php?page=Build+From+Source+-+Bootloader#Build_U-Boot
+
+Kernel:
+https://wiki.gentoo.org/wiki/ESPRESSOBin
+
+Partitioning:
+
+Archives:
+
+Misc:

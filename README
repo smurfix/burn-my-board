@@ -36,7 +36,7 @@ See below.
 Read ``doc/target/``_TARGET_ for further eludication and instruction.
 
 Set ``export TARGET=``_TARGET_ to tell the commands in ``bin/`` which board
-to build for. Alternately, the scripts accept ``:TARGET`` as the first
+to build for. Alternately, the scripts accept _TARGET_ as the first
 argument.
 
 Optional: set ``export BMB_TEMP=/var/tmp/some_dir`` to create a persistent
@@ -59,7 +59,7 @@ Create an image
 
 Read ``doc/target/``_TARGET_ for any requirements.
 
-Call ``bin/make_image :TARGET /var/tmp/TARGET.img``. Then copy the image to
+Call ``bin/make_image ``_TARGET_`` /var/tmp/TARGET.img``. Then copy the image to
 an SD card (``sudo dd bs=1024k if=/var/tmp/TARGET.img of=/dev/sdX``).
 
 You can also insert an SD card and run ``bin/make_image TARGET /dev/sdX``.
@@ -71,12 +71,13 @@ Add a new board
 
 * Add a ``doc/target/``_TARGET_ file that contains anything one needs to
   know to bring up your board. Start with how to connect the console (which
-  pins? baud rate? If the adapter needs Vcc and the console is on a
+  pins? baud rate? If the serial adapter needs Vcc and the console is on a
   three-pin header, where can it get that?), add any special instructions
   if simply writing the image to an SD card or USB stick and plugging that
-  in doesn't work, followed by any insights you gained when you did this
-  which you'd like your future self to know. Don't forget links to the
-  documentation you used.
+  in doesn't work (like u-boot variables), followed by any insights you
+  gained when you did this which you'd wanted to know when you started
+  and/or which you'd like your future self to know. Don't forget links to
+  the documentation you used.
 
 * Clone all external requirements to your own repository. Use the "mirror"
   function to fetch them.
@@ -98,9 +99,8 @@ Add a new board
 
 * That worked? Good. Proceed with "Create an image", above.
 
-* Add a file to doc/authors/TARGET. The "source" tag should point to your
-  repository. All tags may be repeated. Add ``#BRANCH`` at the end if not
-  ``master``.
+* Add a file to ``doc/authors/``_TARGET_. The "source" tag should point to
+  your repository. Add ``#BRANCH`` at the end if it's not ``master``.
 
 * Create a pull request so that I can integrate your extension.
 
@@ -132,12 +132,12 @@ snippets.
 * loopback
 
   Get a loopback device. Accepts the same arguments as ``losetup``, most
-  notably including ``-P``. Will get recoded so auto de-looping works.
+  notably including ``-P``. Will get wrapped so auto de-looping works.
 
 * mount
 
   Alias for "mount". Usage: destdir source any_mount_options.
-  Will get recorded so that auto unmounting works.
+  Will get wrapped so that auto unmounting works.
   If the source is a directory, does a bind mount.
 
 * cleanup

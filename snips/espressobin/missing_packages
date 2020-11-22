@@ -1,0 +1,1 @@
+# test -f $R/usr/sbin/update_extlinux || PKG="$PKG rock-setup" ## TODO this thing is not optimal
