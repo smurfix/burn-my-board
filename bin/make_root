@@ -27,11 +27,19 @@ test -f /usr/bin/systemd-nspawn || P="$P systemd-container"
 test -f /usr/bin/realpath || P="$P realpath"
 test -f /usr/bin/qemu-$BIN_ARCH-static || P="$P qemu-user-static"
 test -f /usr/bin/$BIN_ARCH-linux-gnu-gcc || P="$P gcc-$BIN_ARCH-linux-gnu"
+test -f /lib/systemd/system/polkit.service || P="$P policykit-1"
+test -f /sbin/mkfs.vfat || P="$P dosfstools"
+test -f /usr/bin/flex || P="$P flex"
+test -f /usr/bin/bison || P="$P bison"
+test -f /usr/include/openssl/seed.h || P="$P openssl-dev"
+test -f /usr/bin/make || P="$P make"
+test -f /usr/bin/strace || P="$P strace"
+test -f /usr/sbin/update-binfmts || P="$P binfmt-support"
 test -z "$P" || sudo apt-get install --no-install-recommends $P
 
 R=$T/root
 mkdir -p $R
-if test [ "$1" = "/" ] ; then
+if test "$1" = "/" ; then
 	R=/
 	echo WARNING running on current system
 elif test -z "$1" || test "$1" = "--" ; then
@@ -89,6 +97,7 @@ mkdir -p $T/kernel
 bin/make_kernel $T/kernel
 
 mkdir -p $T/run
+sudo mkdir -p $R/etc
 if test ! -L $R/etc/resolv.conf ; then
 	sudo ln -sf /run/systemd/resolve/resolv.conf $R/etc/resolv.conf
 fi
@@ -133,7 +142,6 @@ test -f $R/usr/sbin/sshd || PKG="$PKG openssh-server"
 test -f $R/usr/bin/dbus-daemon || PKG="$PKG dbus"
 test -f $R/usr/share/perl5/Term/ReadLine/Perl.pm || PKG="$PKG libterm-readline-perl-perl"
 test -f $R/usr/bin/less || PKG="$PKG less"
-test -f $R/usr/bin/strace || PKG="$PKG strace"
 test -f $R/usr/bin/vim.tiny || PKG="$PKG vim-tiny"
 test -f $R/sbin/ip || PKG="$PKG iproute2"
 test -f $R/sbin/lsmod || PKG="$PKG kmod"
@@ -142,11 +150,6 @@ test -f $R/sbin/init || PKG="$PKG systemd-sysv"
 
 source snips/$TARGET/missing_packages
 
-if test -f "$R/root.partid" ; then
-	sed -i -e "s/PARTUUID=[-0-9a-f]* /PARTUUID=$()/" $R/etc/default/extlinux $R/boot/extlinux/extlinux.conf
-	rm -f "$R/root.partid"
-fi
-
 if test -n "$PKG" ; then
 	$C eatmydata apt update -y
 	$C eatmydata apt-get install --no-install-recommends -y $PKG
@@ -154,7 +157,7 @@ fi
 
 $C systemctl enable systemd-networkd
 $C systemctl enable systemd-resolved
-if [ "$R" != "/" ] && [ "cat $R/etc/hostname" == "$(cat /etc/hostname)" ] ; then
+if [ "$R" != "/" ] && [ "$(cat $R/etc/hostname)" == "$(cat /etc/hostname)" ] ; then
 	# Duh.
 	echo_to $R/etc/hostname TODO
 fi

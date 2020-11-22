@@ -28,7 +28,7 @@ recommendations to leave the red wire open. (Besides, on my µArt the ``Vcc``
 wire is white. :-P )
 
 Run ``sudo id``. Twice. If that doesn't work or if it asks for a password
-the second time, fix it. This code needs to call ``sudo`` awfully often.
+the second time, fix it. This code calls ``sudo`` awfully often.
 
 Run ``ls config/kernel``. If your board isn't listed, you need to add it.
 See below.
@@ -38,6 +38,9 @@ Read ``doc/target/``_TARGET_ for further eludication and instruction.
 Set ``export TARGET=``_TARGET_ to tell the commands in ``bin/`` which board
 to build for. Alternately, the scripts accept ``:TARGET`` as the first
 argument.
+
+Optional: set ``export BMB_TEMP=/var/tmp/some_dir`` to create a persistent
+tempdir. This does speed things up some.
 
 Optional: Set ``export SPECIAL=something``, then create (possibly-empty)
 files ``helper/apt/something`` and ``params/special/something``. You can
