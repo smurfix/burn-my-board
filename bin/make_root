@@ -151,6 +151,7 @@ test -f $R/sbin/ip || PKG="$PKG iproute2"
 test -f $R/sbin/lsmod || PKG="$PKG kmod"
 test -f $R/sbin/udevadm || PKG="$PKG udev"
 test -f $R/sbin/init || PKG="$PKG systemd-sysv"
+test -f $R/usr/bin/fw_printenv || PKG="$PKG u-boot-tools"
 
 source snips/$TARGET/missing_packages
 
