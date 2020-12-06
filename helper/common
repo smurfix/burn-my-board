@@ -51,6 +51,12 @@ cat_to() {
 	cat "$@" | sudo tee "$DEST" >/dev/null
 }
 
+cat_to_end() {
+	DEST="$1"
+	shift
+	cat "$@" | sudo tee -a "$DEST" >/dev/null
+}
+
 loopback() {
 	set -e
 	local L=$(sudo losetup -f)
