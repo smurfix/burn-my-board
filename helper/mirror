@@ -5,7 +5,7 @@ else
     if test -d ../$1/.git ; then
         git clone -s ../$1 mirror/$1
     else
-        git clone --branch $TARGET git@git.extern.smurf.noris.de:$1.git mirror/$1
+        git clone --depth 10 --branch $TARGET git@git.extern.smurf.noris.de:$1.git mirror/$1
     fi
 fi
 echo mirror/$1
