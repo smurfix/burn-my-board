@@ -24,7 +24,7 @@ export ARCH CROSS_COMPILE
 pushd $(mirror kernel)
 git checkout $TARGET
 cmp -s "$ORIG_PWD/config/kernel/$TARGET" .config || cp "$ORIG_PWD/config/kernel/$TARGET" .config
-make olddefconfig
+make olddefconfig prepare
 test -v MENU && make menuconfig
 cmp -s "$ORIG_PWD/config/kernel/$TARGET" .config || cp .config "$ORIG_PWD/config/kernel/$TARGET"
 if ! fgrep -qsx "CONFIG_LOCALVERSION_AUTO=y" .config ; then
@@ -52,11 +52,11 @@ if test -s $DEST/linux.version && test "$(cat $DEST/linux.version)" = "$REL"  ; 
 else
     pushd $(mirror kernel)
     # we could analyze "present" instead, but that's way more work
-    make -j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l) bindeb-pkg
+    dpkg-buildpackage -b -us -uc -nc -a $ARCH -j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l)
     cd ..
-    mv linux-image-${REL}_${VERS}_arm64.deb $DEST/linux-image.deb
-    mv linux-libc-dev_${VERS}_arm64.deb $DEST/linux-libc-dev.deb
-    mv linux-headers-${REL}_${VERS}_arm64.deb $DEST/linux-headers.deb
+    mv linux-image-${REL}_${VERS}_${ARCH}.deb $DEST/linux-image.deb
+    mv linux-libc-dev_${VERS}_${ARCH}.deb $DEST/linux-libc-dev.deb
+    mv linux-headers-${REL}_${VERS}_${ARCH}.deb $DEST/linux-headers.deb
     echo $REL > $DEST/linux.version
     popd
 fi
