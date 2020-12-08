@@ -57,7 +57,7 @@ fi
 shift
 
 sudo mkdir -p $T/root/boot
-if test -z "$1" ; then
+if test $# -eq 0 ; then
 	:
 elif test "$1" = "--" ; then
 	:
