@@ -1,0 +1,33 @@
+
+if ! test -s $R/etc/systemd/system/systemd-networkd.service.d/en0.conf ; then
+	sudo mkdir -p /etc/systemd/system/systemd-networkd.service.d
+	cat_to /etc/systemd/system/systemd-networkd.service.d/en0.conf <<_
+[Service]
+ExecStartPre=/sbin/ip link set dev en0 up
+_
+fi
+
+cd mirror/kernel
+REL=$(make kernelrelease)
+VERS=$(dpkg-parsechangelog | sed -ne 's/^Version: //p')
+
+cd $R/boot
+if ! test -f config.txt || ! grep -qs "^enable_uart" config.txt ; then
+	cat_to config.txt <<END
+kernel=kernel.img
+disable_overscan=1
+dtparam=i2c_arm=on
+dtparam=audio=on
+max_usb_current=1
+gpu_mem=32
+initial_turbo=3
+disable_splash=0
+enable_uart=1
+END
+
+fi
+
+sudo cp -u vmlinuz-$REL kernel.img
+sudo cp -u ../usr/lib/linux-image-$REL/brm*rp* .
+sudo mkdir -p overlays
+sudo cp -u ../usr/lib/linux-image-$REL/overlays/* overlays/

@@ -21,12 +21,14 @@ ___
 }
 
 DIST=buster
+test -v DEB_ARCH || DEB_ARCH=$ARCH
 
+QEMU=/usr/bin/qemu-${ARCH_PREFIX:-$BIN_ARCH}-static
 P=""
 test -f /usr/bin/systemd-nspawn || P="$P systemd-container"
 test -f /usr/bin/realpath || P="$P realpath"
-test -f /usr/bin/qemu-$BIN_ARCH-static || P="$P qemu-user-static"
-test -f /usr/bin/$BIN_ARCH-linux-gnu-gcc || P="$P gcc-$BIN_ARCH-linux-gnu"
+test -f $QEMU || P="$P qemu-user-static"
+test -f /usr/bin/${CROSS_COMPILE}gcc || P="$P ${BIN_ARCH_PKG:-gcc-$BIN_ARCH-linux-gnu}"
 test -f /lib/systemd/system/polkit.service || P="$P policykit-1"
 test -f /sbin/mkfs.vfat || P="$P dosfstools"
 test -f /usr/bin/flex || P="$P flex"
@@ -51,8 +53,9 @@ elif test -d "$1" ; then
 	mount "$1" $R
 else
 	test -s "$1"
-	DEV=$(loopback "$1")
-	mount ${DEV} $R
+	DEV=$(loopback "$1" -P)
+	mount ${DEV}p2 $R
+	mount ${DEV}p1 $R/boot
 fi
 shift
 
@@ -82,11 +85,14 @@ if test "$#" -gt 0 && test "$1" = "--" ; then shift; fi
 
 set -u
 
-if ! test -x $R/usr/bin/qemu-$BIN_ARCH-static ; then
+QEMU=/usr/bin/qemu-${ARCH_PREFIX:-$BIN_ARCH}-static
+if ! test -x $R/$QEMU ; then
 	mkdir -p $R
-	sudo debootstrap --arch=$ARCH --foreign --variant=minbase $DIST $R || true
 	sudo mkdir -p $R/usr/bin/
-	sudo cp /usr/bin/qemu-$BIN_ARCH-static $R/usr/bin/
+	sudo cp $QEMU $R/usr/bin/
+fi
+if ! test -x $R/bin/dash ; then
+	sudo debootstrap --arch=$DEB_ARCH --foreign --variant=minbase $DIST $R
 fi
 if test -x $R/debootstrap/debootstrap ; then
 	sudo chroot $R /debootstrap/debootstrap --second-stage
@@ -102,7 +108,7 @@ if test -L $R/etc/resolv.conf ; then
 	sudo rm -f $R/etc/resolv.conf
 fi
 if test ! -s $R/etc/resolv.conf ; then
-	sudo cat /etc/resolv.conf > $R/etc/resolv.conf
+	cat_to $R/etc/resolv.conf /etc/resolv.conf
 fi
 
 C="sudo systemd-nspawn -a -M $(basename $T) -D $R --bind=$T"
@@ -151,6 +157,7 @@ test -f $R/sbin/ip || PKG="$PKG iproute2"
 test -f $R/sbin/lsmod || PKG="$PKG kmod"
 test -f $R/sbin/udevadm || PKG="$PKG udev"
 test -f $R/sbin/init || PKG="$PKG systemd-sysv"
+test -f $R/usr/bin/fw_printenv || PKG="$PKG u-boot-tools"
 test -f $R/usr/bin/fw_printenv || PKG="$PKG u-boot-tools"
 
 source snips/$TARGET/missing_packages

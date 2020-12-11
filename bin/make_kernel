@@ -20,6 +20,7 @@ test "$#" -gt 0 && test -d "$1" || usage
 DEST="$1"
 
 export ARCH CROSS_COMPILE
+test -v DEB_ARCH || DEB_ARCH=$ARCH
 
 pushd $(mirror kernel)
 git checkout $TARGET
@@ -43,7 +44,7 @@ REL=$(make kernelrelease)
 if echo "$REL" | grep -qs 'dirty$' ; then
     die "You need to check in your kernel changes before building."
 fi
-make mkdeb-pkg
+env $(dpkg-architecture -a$DEB_ARCH) make mkdeb-pkg
 VERS=$(dpkg-parsechangelog | sed -ne 's/^Version: //p')
 popd
 
@@ -52,11 +53,11 @@ if test -s $DEST/linux.version && test "$(cat $DEST/linux.version)" = "$REL"  ; 
 else
     pushd $(mirror kernel)
     # we could analyze "present" instead, but that's way more work
-    dpkg-buildpackage -b -us -uc -nc -a $ARCH -j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l)
+    dpkg-buildpackage -b -us -uc -nc -a $DEB_ARCH -j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l)
     cd ..
-    mv linux-image-${REL}_${VERS}_${ARCH}.deb $DEST/linux-image.deb
-    mv linux-libc-dev_${VERS}_${ARCH}.deb $DEST/linux-libc-dev.deb
-    mv linux-headers-${REL}_${VERS}_${ARCH}.deb $DEST/linux-headers.deb
+    mv linux-image-${REL}_${VERS}_${DEB_ARCH}.deb $DEST/linux-image.deb
+    mv linux-libc-dev_${VERS}_${DEB_ARCH}.deb $DEST/linux-libc-dev.deb
+    mv linux-headers-${REL}_${VERS}_${DEB_ARCH}.deb $DEST/linux-headers.deb
     echo $REL > $DEST/linux.version
     popd
 fi
