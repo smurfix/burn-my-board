@@ -19,8 +19,11 @@ test "$#" -gt 0 && test -d "$1" || usage
 
 DEST="$1"
 
-export ARCH CROSS_COMPILE
-test -v DEB_ARCH || DEB_ARCH=$ARCH
+cc_cmd=
+if test -v CC ; then
+    cc_cmd="CC=${CC}"
+fi
+j="-j$(ls -1 /sys/devices/system/cpu | grep 'cpu[0-9]' | wc -l)"
 
 pushd $(mirror kernel)
 git checkout $TARGET
@@ -44,7 +47,8 @@ REL=$(make kernelrelease)
 if echo "$REL" | grep -qs 'dirty$' ; then
     die "You need to check in your kernel changes before building."
 fi
-env $(dpkg-architecture -a$DEB_ARCH) make mkdeb-pkg
+#make ARCH=$ARCH $(dpkg-architecture -a$DEB_ARCH) $cc_cmd $j vmlinux modules
+make ARCH=$ARCH $(dpkg-architecture -a$DEB_ARCH) $cc_cmd $j mkdeb-pkg
 VERS=$(dpkg-parsechangelog | sed -ne 's/^Version: //p')
 popd
 

@@ -11,6 +11,9 @@ CROSS_COMPILE=arm-linux-gnueabihf-
 
 PART_OFFSET=1
 
+P_BOOT=1
+P_ROOT=2
+
 BOOT_SIZE=${BOOT_SIZE:-$(expr 300 \* 1024 \* 2)}
 ROOT_SIZE=${ROOT_SIZE:-$(expr 800 \* 1024 \* 2)}
 

@@ -20,8 +20,7 @@ ___
     exit 1
 }
 
-DIST=buster
-test -v DEB_ARCH || DEB_ARCH=$ARCH
+DIST=${DIST:-stable}
 
 QEMU=/usr/bin/qemu-${ARCH_PREFIX:-$BIN_ARCH}-static
 P=""
@@ -39,8 +38,6 @@ test -f /usr/bin/strace || P="$P strace"
 test -f /usr/sbin/update-binfmts || P="$P binfmt-support"
 test -z "$P" || sudo apt-get install --no-install-recommends $P
 
-R=$T/root
-mkdir -p $R
 if test "$1" = "/" ; then
 	R=/
 	echo WARNING running on current system
@@ -52,14 +49,21 @@ elif test -b "$1" ; then
 elif test -d "$1" ; then
 	mount "$1" $R
 else
-	test -s "$1"
+	test -s "$1" || touch "$1"
 	DEV=$(loopback "$1" -P)
-	mount ${DEV}p2 $R
-	mount ${DEV}p1 $R/boot
+	mount ${DEV}p${P_ROOT} $R
+	if test $# -eq 1 ; then
+		if test -v BOOT_TMP; then
+			: # done below
+		elif test -v P_BOOT; then
+			mount ${DEV}p${P_BOOT} $R/boot
+		fi
+	fi
 fi
-shift
 
-sudo mkdir -p $T/root/boot
+shift
+sudo mkdir -p $R/boot
+
 if test $# -eq 0 ; then
 	:
 elif test "$1" = "--" ; then
@@ -77,6 +81,10 @@ else
 	DEV=$(loopback "$1")
 	mount $DEV $R/boot
 	shift
+fi
+
+if test -v BOOT_TMP; then
+	mountpoint -q $R/boot || mount tmpfs $R/boot -t tmpfs 
 fi
 
 sudo mkdir -p $R/$T
@@ -111,12 +119,10 @@ if test ! -s $R/etc/resolv.conf ; then
 	cat_to $R/etc/resolv.conf /etc/resolv.conf
 fi
 
-C="sudo systemd-nspawn -a -M $(basename $T) -D $R --bind=$T"
+C="sudo systemd-nspawn -a -M $(basename $T | sed -e s/_/-/) -D $R --bind=$T"
 # does not work: --bind=$T/run:/run"
 
 if ! test -s $R/usr/bin/gpg-agent ; then # for apt-key
-	$C apt update -y || true
-	/bin/bash
 	$C apt update -y
 	$C apt-get install --no-install-recommends -y gpg gpg-agent
 fi
@@ -158,7 +164,6 @@ test -f $R/sbin/lsmod || PKG="$PKG kmod"
 test -f $R/sbin/udevadm || PKG="$PKG udev"
 test -f $R/sbin/init || PKG="$PKG systemd-sysv"
 test -f $R/usr/bin/fw_printenv || PKG="$PKG u-boot-tools"
-test -f $R/usr/bin/fw_printenv || PKG="$PKG u-boot-tools"
 
 source snips/$TARGET/missing_packages
 
@@ -175,6 +180,7 @@ if [ "$R" != "/" ] && [ "$(cat $R/etc/hostname)" == "$(cat /etc/hostname)" ] ; t
 fi
 
 if test ! -s $R/boot/config-$(cat $T/kernel/linux.version) ; then
+	source snips/$TARGET/pre-kernel-install
 	$C eatmydata dpkg -i $T/kernel/linux-image.deb
 fi
 
@@ -190,6 +196,8 @@ if test -v SPECIAL ; then
 		source helper/special/$s
 	done
 fi
+
+sudo rm -rf $R/var/tmp/* $R/tmp/*
 
 if test -n "$*" ; then
 $C "$@"

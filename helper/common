@@ -113,7 +113,10 @@ if [ ! -v BMB_TEMP ] ; then
 else
 	T="$BMB_TEMP"
 fi
+
+R=$T/root
 mkdir -p "$T/info"
+sudo mkdir -p "$R"
 trap "_cleanup" EXIT
 
 touch $T/info/loop.$$ # list of loopback devices I created

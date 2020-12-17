@@ -16,6 +16,9 @@ PART_OFFSET=1  # 1 for SD ?
 BOOT_SIZE=${BOOT_SIZE:-$(expr 300 \* 1024 \* 2)}
 ROOT_SIZE=${ROOT_SIZE:-$(expr 800 \* 1024 \* 2)}
 
+P_BOOT=1
+P_ROOT=2
+
 MKFS_BOOT="/sbin/mkfs.ext4"
 
 #LOADER1_START=$(expr ${PART_OFFSET} + 64)

@@ -1,0 +1,30 @@
+GnuBee 1/2
+==========
+
+You need a serial cable with a 3.5mm stereo jack to talk to the console, and
+a standard USB stick to update the boot laoder. Use LF line endings, not
+CRLF, and set to 57600 baud.
+
+Kernel: ???
+
+u-boot
+++++++
+
+None yet. Using the u-boot that comes with the board. For now.
+
+Documentation
++++++++++++++
+
+Boot loader:
+???
+
+Kernel:
+
+
+Partitioning:
+
+Archives:
+
+Misc:
+https://github.com/neilbrown/gnubee-tools
+http://neil.brown.name/gnubee/README

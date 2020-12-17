@@ -1,0 +1,6 @@
+Description: Image and firmware for GnuBee.
+Author: Matthias Urlichs
+Email: <matthias@urlichs.de>
+Source: https://git.smurf.noris.de/burn-my-board.git
+Source: https://github.com/smurfix/burn-my-board.git
+

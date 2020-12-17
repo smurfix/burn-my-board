@@ -1,0 +1,15 @@
+
+: the built-in u-boot is a crock of unmaintained code but oh well.
+
+cc_cmd=
+if test -v CC ; then
+    cc_cmd="CC=${CC}"
+fi
+
+export BMB_INITRAMFS=$T/initramfs.cpio
+pushd mirror/kernel
+make ARCH=${ARCH} $(dpkg-architecture -a$DEB_ARCH) $cc_cmd uImage
+suffix=$(make kernelrelease)
+popd
+sudo mv "$(pwd)/mirror/kernel/arch/$ARCH/boot/uImage.bin" "$DEST/gnubee-${suffix}.bin"
+

@@ -23,7 +23,6 @@ test "$#" -gt 0 || usage
 
 source snips/$TARGET/partinfo
 
-R=$T/root
 mkdir -p $R
 if test -z "$1" || test "$1" = "--" ; then
     echo "You need to supply a place to store the image."
@@ -43,15 +42,18 @@ else
     IMG=$(loopback "$1" -P)
     IMGP="$IMG"p
 fi
+export IMG IMGP
 shift
 
+if test -v P_BOOT ; then
 sudo blkid ${IMGP}${P_BOOT} | grep -qs TYPE= || \
 sudo ${MKFS_BOOT} ${IMGP}${P_BOOT}
+fi
 sudo blkid ${IMGP}${P_ROOT} | grep -qs TYPE= || \
 sudo ${MKFS_ROOT} ${IMGP}${P_ROOT}
 
 # TODO build in a dir and copy
-bin/make_root ${IMGP}${P_ROOT} ${IMGP}${P_BOOT} "$@"
+bin/make_root ${IMGP}${P_ROOT} ${P_BOOT:+${IMGP}${P_BOOT}} -- "$@"
 bin/make_loader
 
 source snips/$TARGET/write_loader

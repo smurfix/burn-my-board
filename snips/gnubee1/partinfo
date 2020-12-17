@@ -1,0 +1,18 @@
+# See doc/snips/partinfo for the purpose of this.
+
+PART_OFFSET=0  # 1 for SD ?
+source helper/params
+
+cat >$T/partinfo <<_
+label: gpt
+#label-id: B01F15CB-EA3B-408F-8384-D4B99DD16859
+#device: /var/tmp/whatever
+unit: sectors
+table-length: 8
+first-lba: ${ROOT_START}
+last-lba: $(expr ${DEVICE_SIZE} - 64 - 2)
+# workaround
+
+/var/tmp/bla1 : start=${ROOT_START}, size=${ROOT_SIZE}, type=0FC63DAF-8483-4772-8E79-3D69D8477DE4, name="rootfs"
+
+_

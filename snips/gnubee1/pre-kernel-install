@@ -1,0 +1,41 @@
+# setup kernel installation
+
+pushd $R/etc/initramfs-tools
+
+sudo sed -i -e 's/^MODULES=.*/MODULES=list/' initramfs.conf
+sudo mkdir -p modules.d
+cat_to modules.d/local <<END
+hid
+usbcore
+usb-common
+xhci-hcd
+xhci-mtk
+xhci-pci
+xhci-plat-hcd
+ums-realtek
+usb-storage
+END
+
+if true ; then sudo rm -f hooks/local ; else
+cat_to hooks/local <<'END'
+#!/bin/sh
+PREREQ=""
+prereqs()
+{
+	echo "$PREREQ"
+}
+
+case $1 in
+prereqs)
+	prereqs
+	exit 0
+	;;
+esac
+
+. /usr/share/initramfs-tools/hook-functions
+
+END
+sudo chmod +x hooks/local
+fi
+
+popd
