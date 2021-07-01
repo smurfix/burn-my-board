@@ -22,6 +22,7 @@ ___
 test "$#" -gt 0 || usage
 
 source snips/$TARGET/partinfo
+cat $T/partinfo
 
 mkdir -p $R
 if test -z "$1" || test "$1" = "--" ; then

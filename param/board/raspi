@@ -18,6 +18,6 @@ BOOT_SIZE=${BOOT_SIZE:-$(expr 300 \* 1024 \* 2)}
 ROOT_SIZE=${ROOT_SIZE:-$(expr 800 \* 1024 \* 2)}
 
 BOOT_START=8192
-ROOT_START=$(expr ${BOOT_START} + ${BOOT_SIZE})
-DEVICE_SIZE=$(expr ${ROOT_START} + ${ROOT_SIZE} + 66) # workaround for fdisk bug
+ROOT_START=$(expr ${BOOT_START} + ${BOOT_SIZE} + 16)
+DEVICE_SIZE=$(expr ${ROOT_START} + ${ROOT_SIZE} + 82) # workaround for fdisk bug
 
