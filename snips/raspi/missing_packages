@@ -1,0 +1,2 @@
+test -f $R/boot/bootcode.bin || PKG="$PKG raspberrypi-bootloader"
+

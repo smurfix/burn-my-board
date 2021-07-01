@@ -18,6 +18,7 @@ if test $# -gt 0 ; then
 else
     DEST="$T/loader"
 fi
+sudo mkdir -p $DEST
 
 source snips/$TARGET/make_loader
 

@@ -1,0 +1,21 @@
+# Espressobin
+
+ARCH=mips
+BIN_ARCH=mipsel
+DEB_ARCH=mipsel
+UBOOT_ARCH=mipsel
+CROSS_COMPILE=mipsel-linux-gnu-
+DTB=
+
+BOOT_TMP=y
+PART_OFFSET=1  # 1 for SD ?
+
+ROOT_SIZE=${ROOT_SIZE:-$(expr 800 \* 1024 \* 2)}
+
+MKFS_BOOT="/sbin/mkfs.ext4"
+
+ROOT_START=8192
+P_ROOT=1
+DEVICE_SIZE=$(expr ${ROOT_START} + ${ROOT_SIZE} + 66) # workaround for fdisk bug
+
+#export CC=mipsel-linux-gnu-gcc-6

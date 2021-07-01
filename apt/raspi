@@ -1,0 +1,11 @@
+#
+if true ; then # test ! -s $R/etc/apt/sources.list.d/$TARGET.list ; then
+    #wget -O $T/key http://apt.radxa.com/stretch/public.key
+    gpg --keyserver keys.gnupg.net --recv-key 82B129927FA3303E 9165938D90FDDD2E
+    gpg --export 82B129927FA3303E 9165938D90FDDD2E > $T/key
+    $C apt-key add $T/key
+
+    echo_to $R/etc/apt/sources.list.d/$TARGET.list "deb http://archive.raspberrypi.org/debian/ buster main ui"
+
+fi
+

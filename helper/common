@@ -51,6 +51,12 @@ cat_to() {
 	cat "$@" | sudo tee "$DEST" >/dev/null
 }
 
+cat_to_end() {
+	DEST="$1"
+	shift
+	cat "$@" | sudo tee -a "$DEST" >/dev/null
+}
+
 loopback() {
 	set -e
 	local L=$(sudo losetup -f)
@@ -95,6 +101,9 @@ _cleanup() {
 	test -v _BMB_THIS_TEMP && rm -rf $T
 }
 
+if [ ! -v TEMPDIR ] ; then
+	export TEMPDIR="/var/tmp"
+fi
 if [ ! -v BMB_TEMP ] ; then
 	T=$(tempfile -d "$TEMPDIR")
 	rm -f "$T"
@@ -104,7 +113,10 @@ if [ ! -v BMB_TEMP ] ; then
 else
 	T="$BMB_TEMP"
 fi
+
+R=$T/root
 mkdir -p "$T/info"
+sudo mkdir -p "$R"
 trap "_cleanup" EXIT
 
 touch $T/info/loop.$$ # list of loopback devices I created

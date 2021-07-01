@@ -1,0 +1,22 @@
+# See doc/snips/partinfo for the purpose of this.
+
+PART_OFFSET=0  # 1 for SD ?
+source helper/params
+
+P_ROOT=2
+P_BOOT=1
+
+cat >$T/partinfo <<_
+label: dos
+#label-id: B01F15CB-EA3B-408F-8384-D4B99DD16859
+#device: /var/tmp/whatever
+unit: sectors
+table-length: 8
+first-lba: ${BOOT_START}
+last-lba: $(expr ${DEVICE_SIZE} - 64 - 2)
+# workaround
+
+/var/tmp/bla1 : start=${BOOT_START}, size=${BOOT_SIZE}, type=0C
+/var/tmp/bla2 : start=${ROOT_START}, size=${ROOT_SIZE}, type=83
+
+_

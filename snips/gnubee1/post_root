@@ -1,0 +1,14 @@
+
+if ! test -s $R/etc/systemd/system/systemd-networkd.service.d/eth0.conf ; then
+	sudo mkdir -p /etc/systemd/system/systemd-networkd.service.d
+	cat_to /etc/systemd/system/systemd-networkd.service.d/eth0.conf <<_
+[Service]
+ExecStartPre=/sbin/ip link set dev eth0 up
+_
+fi
+
+
+sudo e2label ${IMGP}${P_ROOT} GNUBEE-ROOT
+
+suffix=$(cd mirror/kernel; make kernelrelease)
+gzip -d < $R/boot/initrd.img-$suffix | cat_to $T/initramfs.cpio

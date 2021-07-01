@@ -1,0 +1,1 @@
+test -f $R/usr/sbin/flash_erase || PKG="$PKG mtd-utils"

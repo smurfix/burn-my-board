@@ -25,3 +25,6 @@ BOOT_START=$(expr ${ATF_START} + ${ATF_SIZE})
 ROOT_START=$(expr ${BOOT_START} + ${BOOT_SIZE})
 DEVICE_SIZE=$(expr ${ROOT_START} + ${ROOT_SIZE} + 66) # workaround for fdisk bug
 
+P_BOOT=6
+P_ROOT=7
+

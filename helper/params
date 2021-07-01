@@ -6,3 +6,11 @@ if test -v SETUP ; then
 	done
 fi
 
+test -v DEB_ARCH || DEB_ARCH=$ARCH
+test -v BIN_ARCH || BIN_ARCH=$ARCH
+if test $(dpkg --print-architecture) = $DEB_ARCH ; then
+	CROSS_COMPILE=""
+else
+	test -v CROSS_COMPILE || CROSS_COMPILE=${BIN_ARCH}-linux-gnu-
+fi
+export ARCH CROSS_COMPILE

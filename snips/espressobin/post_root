@@ -6,3 +6,67 @@ if ! test -s $R/etc/systemd/system/systemd-networkd.service.d/eth0.conf ; then
 ExecStartPre=/sbin/ip link set dev eth0 up
 _
 fi
+
+cd $R/boot
+if test -f vmlinux ; then : ; else
+	for f in vmlinuz-* ; do
+		v="${f##vmlinuz-}"
+		test -s "vmlinux-$v" || gzip -cd "vmlinuz-$v" > vmlinux-$v
+		test -s "dtb-$v" || cp "../usr/lib/linux-image-$v/marvell/armada-3720-espressobin.dtb" "dtb-$v"
+		test -s "uinitrd-$v" || mkimage -A arm64 -O linux -C gzip -n initrd -d "initrd.img-$v" "uinitrd-$v"
+	done
+	if ! grep -sq ttyMV0 $R/etc/securetty ; then
+		echo ttyMV0 | cat_to_end $R/etc/securetty
+	fi
+	cd $R/boot
+	if ! test -s armbianEnv.txt ; then
+		cat_to armbianEnv.txt <<_END
+verbosity=1
+emmc_fix=off
+spi_workaround=off
+eth1addr=02:de:ad:00:00:10
+eth2addr=02:de:ad:00:00:11
+eth3addr=02:de:ad:00:00:12
+rootdev=UUID=uuid=$(findmnt -n -o UUID $R)
+rootfstype=ext4
+_END
+	fi
+	if ! test -s boot.cmd ; then
+		cat_to boot.cmd <<_END
+
+# default values
+setenv rootdev "/dev/mmcblk0p${P_ROOT}"
+setenv verbosity "1"
+setenv rootfstype "ext4"
+
+load \${boot_interface} \${devnum}:1 \${scriptaddr} \${prefix}armbianEnv.txt
+env import -t \${scriptaddr} \${filesize}
+
+setenv bootargs "\$console root=\${rootdev} rootfstype=\${rootfstype} rootwait loglevel=\${verbosity} usb-storage.quirks=\${usbstoragequirks} mtdparts=spi0.0:1536k(uboot),64k(uboot-environment),-(reserved) \${extraargs}"
+
+ext4load \$boot_interface 0:1 \$kernel_addr \${prefix}\$image_name
+ext4load \$boot_interface 0:1 \$initrd_addr \${prefix}\$initrd_image
+ext4load \$boot_interface 0:1 \$fdt_addr \${prefix}dtb/marvell/armada-3720-espressobin.dtb
+
+booti \$kernel_addr \$initrd_addr \$fdt_addr
+# mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
+END
+		rm -f boot.scr
+	fi
+	if ! test -s boot.scr ; then
+		sudo mkimage -C none -A arm -T script -d /boot/boot.cmd /boot/boot.scr
+	fi
+
+	cd ../etc
+	if ! test -s initramfs/post-update.d/99-uboot ; then
+		cat_to initramfs/post-update.d/99-uboot <<'_END'
+#!/bin/sh
+echo "update-initramfs: Converting to u-boot format" >&2
+tempname="/boot/uInitrd-$1"
+mkimage -A arm64 -O linux -T ramdisk -C gzip -n uInitrd -d $2 $tempname > /dev/null
+
+ln -sf $(basename $tempname) /boot/uInitrd > /dev/null 2>&1 || mv $tempname /boot/uInitrd
+_END
+		sudo chmod +x initramfs/post-update.d/99-uboot
+	fi
+fi
