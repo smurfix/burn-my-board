@@ -18,7 +18,7 @@ How to use this repository
 ==========================
 
 Get a serial console cable. Seriously. I recommend the
-`https://www.crowdsupply.com/pylo/muart µArt` because it has galvanic
+`µArt <https://www.crowdsupply.com/pylo/muart>`_ because it has galvanic
 separation between the host and the target, so you're much less likely to
 fry either. This adapter does need power from the target: ignore any
 recommendations to leave the red wire open. (Besides, on my µArt the ``Vcc``
