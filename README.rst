@@ -17,12 +17,14 @@ because all too often I want to experiment with new features.
 How to use this repository
 ==========================
 
-Get a serial console cable. Seriously. I recommend the
+Get a serial console cable. Seriously. Personally, I recommend the
 `µArt <https://www.crowdsupply.com/pylo/muart>`_ because it has galvanic
-separation between the host and the target, so you're much less likely to
-fry either. This adapter does need power from the target: ignore any
-recommendations to leave the red wire open. (Besides, on my µArt the ``Vcc``
-wire is white. :-P )
+separation between host and target. Also, it takes the UART voltages from
+the target, which means that if the target isn't powered neither are the
+UART signals. Thus you're much less likely to fry your board.
+
+This adapter does need power from the target: ignore any recommendations to
+leave the red wire open. (Besides, on my µArt the ``Vcc`` wire is white. :-P )
 
 Run ``sudo id``. Twice. If that doesn't work or if it asks for a password
 the second time, fix it. This code calls ``sudo`` awfully often.
