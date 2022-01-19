@@ -4,7 +4,7 @@ ARCH=arm64
 BIN_ARCH=aarch64
 UBOOT_ARCH=arm
 CROSS_COMPILE=aarch64-linux-gnu-
-DTB=rk3399-rock-pi-4.dtb
+DTB=rk3399-rock-pi-4a.dtb
 
 PART_OFFSET=0  # 1 for SD ?
 
