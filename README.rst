@@ -1,16 +1,13 @@
 Purpose of this repository
 ==========================
 
-I own a bunch of embedded boards (raspi, rockpi, odroid, …) and frequently
-forget the details on how to create a new image for them.
+I own a bunch of embedded boards (raspi, rockpi, gnubee, odroid, …) and
+frequently forget the details on how to create a new image for them.
 
 Yes I could download one from the manufacturer, but the upstream images
 frequently come with packages I don't need, miss packages I need, require
-handholding before they fit my home network, and whatnot.
-
-Worse, they frequently are unable to do kernel upgrades (defined as "``make
-binpkg-deb`` in the kernel, copy to embedded, ``dpkg install``") out of the
-box.
+handholding before they fit my home network, use kernels from the stone
+age, and whatnot.
 
 I only use embedded things that are supported by the mainline kernel
 because all too often I want to experiment with new features.
@@ -20,12 +17,14 @@ because all too often I want to experiment with new features.
 How to use this repository
 ==========================
 
-Get a serial console cable. Seriously. I recommend the
-`https://www.crowdsupply.com/pylo/muart µArt` because it has galvanic
-separation between the host and the target, so you're much less likely to
-fry either. This adapter does need power from the target: ignore any
-recommendations to leave the red wire open. (Besides, on my µArt the ``Vcc``
-wire is white. :-P )
+Get a serial console cable. Seriously. Personally, I recommend the
+`µArt <https://www.crowdsupply.com/pylo/muart>`_ because it has galvanic
+separation between host and target. Also, it takes the UART voltages from
+the target, which means that if the target isn't powered neither are the
+UART signals. Thus you're much less likely to fry your board.
+
+This adapter does need power from the target: ignore any recommendations to
+leave the red wire open. (Besides, on my µArt the ``Vcc`` wire is white. :-P )
 
 Run ``sudo id``. Twice. If that doesn't work or if it asks for a password
 the second time, fix it. This code calls ``sudo`` awfully often.
